@@ -1,54 +1,43 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Copy, RotateCcw } from "lucide-react";
 
+type Mode = "escape" | "unescape";
+
 export function BackslashTool() {
   const [input, setInput] = useLocalStorage("tool:backslash", "");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
+  const [mode, setMode] = useState<Mode>("escape");
 
-  function escapeStr() {
-    setOutput(
-      input
+  const output = useMemo(() => {
+    if (!input) return "";
+    if (mode === "escape") {
+      return input
         .replace(/\\/g, "\\\\")
         .replace(/"/g, '\\"')
         .replace(/\n/g, "\\n")
         .replace(/\r/g, "\\r")
-        .replace(/\t/g, "\\t")
-    );
-    setError("");
-  }
-
-  function unescapeStr() {
-    try {
-      setOutput(
-        input
-          .replace(/\\n/g, "\n")
-          .replace(/\\r/g, "\r")
-          .replace(/\\t/g, "\t")
-          .replace(/\\"/g, '"')
-          .replace(/\\\\/g, "\\")
-      );
-      setError("");
-    } catch {
-      setError("Unescape failed");
+        .replace(/\t/g, "\\t");
+    } else {
+      return input
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "\r")
+        .replace(/\\t/g, "\t")
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, "\\");
     }
-  }
+  }, [input, mode]);
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" onClick={escapeStr}>Escape</Button>
-        <Button size="sm" variant="outline" onClick={unescapeStr}>Unescape</Button>
-        <Button size="sm" variant="ghost" onClick={() => { setInput(""); setOutput(""); setError(""); }}>
+        <Button size="sm" variant={mode === "escape" ? "default" : "outline"} onClick={() => setMode("escape")}>Escape</Button>
+        <Button size="sm" variant={mode === "unescape" ? "default" : "outline"} onClick={() => setMode("unescape")}>Unescape</Button>
+        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>
-
-      {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
       <div className="grid flex-1 grid-cols-2 gap-3 min-h-0">
         <Textarea

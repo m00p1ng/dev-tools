@@ -1,4 +1,4 @@
-# Plan: Dev Utils Desktop App (Tauri)
+# Plan: Dev Tools Desktop App (Tauri)
 
 ## Context
 Build a cross-platform desktop developer utilities app using Tauri v2. Replaces juggling browser tabs / online tools with a fast, offline-first native app. 19 tools in a two-pane layout: searchable sidebar + content area.
@@ -77,7 +77,7 @@ src/
 ### Phase 1 — Project Scaffold & Shell
 **Goal:** Runnable app with sidebar + content layout, no tools yet.
 
-- `npm create tauri-app@latest dev-utils -- --template react-ts`
+- `npm create tauri-app@latest dev-tools -- --template react-ts`
 - Init Tailwind CSS
 - `npx shadcn@latest init`
 - Add shadcn components: `Input`, `ScrollArea`, `Separator`, `Button`, `Textarea`, `Switch`, `Badge`

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,34 +9,21 @@ import Papa from "papaparse";
 
 export function CsvToJsonTool() {
   const [input, setInput] = useLocalStorage("tool:csv-to-json", "");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
   const [header, setHeader] = useState(true);
 
-  function convert() {
-    const result = Papa.parse(input.trim(), {
-      header,
-      skipEmptyLines: true,
-      dynamicTyping: true,
-    });
-    if (result.errors.length) {
-      setError(result.errors[0].message);
-      setOutput("");
-    } else {
-      setOutput(JSON.stringify(result.data, null, 2));
-      setError("");
-    }
-  }
+  const { output, error } = useMemo(() => {
+    if (!input.trim()) return { output: "", error: "" };
+    const result = Papa.parse(input.trim(), { header, skipEmptyLines: true, dynamicTyping: true });
+    if (result.errors.length) return { output: "", error: result.errors[0].message };
+    return { output: JSON.stringify(result.data, null, 2), error: "" };
+  }, [input, header]);
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-4">
-        <div className="flex gap-2">
-          <Button size="sm" onClick={convert}>Convert to JSON</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setInput(""); setOutput(""); setError(""); }}>
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+          <RotateCcw className="h-3.5 w-3.5" />
+        </Button>
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={header} onCheckedChange={setHeader} />
           First row as header

@@ -1,39 +1,31 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Copy, RotateCcw } from "lucide-react";
 
+type Mode = "encode" | "decode";
+
 export function UrlEncodeTool() {
   const [input, setInput] = useLocalStorage("tool:url-encode", "");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
+  const [mode, setMode] = useState<Mode>("encode");
 
-  function encode() {
+  const { output, error } = useMemo(() => {
+    if (!input) return { output: "", error: "" };
     try {
-      setOutput(encodeURIComponent(input));
-      setError("");
+      return { output: mode === "encode" ? encodeURIComponent(input) : decodeURIComponent(input), error: "" };
     } catch {
-      setError("Encoding failed");
+      return { output: "", error: mode === "encode" ? "Encoding failed" : "Invalid encoded string" };
     }
-  }
-
-  function decode() {
-    try {
-      setOutput(decodeURIComponent(input));
-      setError("");
-    } catch {
-      setError("Invalid encoded string");
-    }
-  }
+  }, [input, mode]);
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" onClick={encode}>Encode</Button>
-        <Button size="sm" variant="outline" onClick={decode}>Decode</Button>
-        <Button size="sm" variant="ghost" onClick={() => { setInput(""); setOutput(""); setError(""); }}>
+        <Button size="sm" variant={mode === "encode" ? "default" : "outline"} onClick={() => setMode("encode")}>Encode</Button>
+        <Button size="sm" variant={mode === "decode" ? "default" : "outline"} onClick={() => setMode("decode")}>Decode</Button>
+        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>

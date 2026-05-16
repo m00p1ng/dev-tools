@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,31 +8,22 @@ import Papa from "papaparse";
 
 export function JsonToCsvTool() {
   const [input, setInput] = useLocalStorage("tool:json-to-csv", "");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
 
-  function convert() {
+  const { output, error } = useMemo(() => {
+    if (!input) return { output: "", error: "" };
     try {
       const parsed = JSON.parse(input);
-      if (!Array.isArray(parsed)) {
-        setError("Input must be a JSON array");
-        setOutput("");
-        return;
-      }
-      const csv = Papa.unparse(parsed);
-      setOutput(csv);
-      setError("");
+      if (!Array.isArray(parsed)) return { output: "", error: "Input must be a JSON array" };
+      return { output: Papa.unparse(parsed), error: "" };
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid JSON");
-      setOutput("");
+      return { output: "", error: e instanceof Error ? e.message : "Invalid JSON" };
     }
-  }
+  }, [input]);
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" onClick={convert}>Convert to CSV</Button>
-        <Button size="sm" variant="ghost" onClick={() => { setInput(""); setOutput(""); setError(""); }}>
+        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>

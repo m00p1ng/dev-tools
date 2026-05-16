@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,25 +8,20 @@ import yaml from "js-yaml";
 
 export function JsonToYamlTool() {
   const [input, setInput] = useLocalStorage("tool:json-to-yaml", "");
-  const [output, setOutput] = useState("");
-  const [error, setError] = useState("");
 
-  function convert() {
+  const { output, error } = useMemo(() => {
+    if (!input) return { output: "", error: "" };
     try {
-      const parsed = JSON.parse(input);
-      setOutput(yaml.dump(parsed, { indent: 2 }));
-      setError("");
+      return { output: yaml.dump(JSON.parse(input), { indent: 2 }), error: "" };
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid JSON");
-      setOutput("");
+      return { output: "", error: e instanceof Error ? e.message : "Invalid JSON" };
     }
-  }
+  }, [input]);
 
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" onClick={convert}>Convert to YAML</Button>
-        <Button size="sm" variant="ghost" onClick={() => { setInput(""); setOutput(""); setError(""); }}>
+        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       </div>
