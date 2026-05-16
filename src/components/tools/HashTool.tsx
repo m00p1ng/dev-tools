@@ -8,10 +8,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import CryptoJS from "crypto-js";
-
-const ALGOS = ["MD5", "SHA-1", "SHA-256", "SHA-512"] as const;
-type Algo = typeof ALGOS[number];
+import { generateHashes, HASH_ALGOS, type HashAlgo } from "@/lib/tool-logic/security";
 
 const listVariants = {
   visible: { transition: { staggerChildren: 0.06 } },
@@ -26,22 +23,7 @@ export function HashTool() {
   const [encoding, setEncoding] = useState<"hex" | "base64">("hex");
   const { isDragging, dropProps } = useDropText(setInput);
 
-  const results: Record<Algo, string> = {} as Record<Algo, string>;
-  if (input) {
-    for (const algo of ALGOS) {
-      const wordArray = (() => {
-        switch (algo) {
-          case "MD5": return CryptoJS.MD5(input);
-          case "SHA-1": return CryptoJS.SHA1(input);
-          case "SHA-256": return CryptoJS.SHA256(input);
-          case "SHA-512": return CryptoJS.SHA512(input);
-        }
-      })();
-      results[algo] = encoding === "base64"
-        ? wordArray.toString(CryptoJS.enc.Base64)
-        : wordArray.toString(CryptoJS.enc.Hex);
-    }
-  }
+  const results: Record<HashAlgo, string> = input ? generateHashes(input, encoding) : {} as Record<HashAlgo, string>;
 
   return (
     <ToolLayout>
@@ -77,7 +59,7 @@ export function HashTool() {
               initial="hidden"
               animate="visible"
             >
-              {ALGOS.map((algo) => (
+              {HASH_ALGOS.map((algo) => (
                 <motion.div key={algo} variants={itemVariants}>
                   <div className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center justify-between mb-1">

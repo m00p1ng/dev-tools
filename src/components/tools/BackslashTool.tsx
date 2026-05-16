@@ -6,6 +6,7 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
+import { transformBackslash } from "@/lib/tool-logic/encoding";
 
 type Mode = "escape" | "unescape";
 
@@ -14,24 +15,7 @@ export function BackslashTool() {
   const [mode, setMode] = useState<Mode>("escape");
   const { isDragging, dropProps } = useDropText(setInput);
 
-  const output = useMemo(() => {
-    if (!input) return "";
-    if (mode === "escape") {
-      return input
-        .replace(/\\/g, "\\\\")
-        .replace(/"/g, '\\"')
-        .replace(/\n/g, "\\n")
-        .replace(/\r/g, "\\r")
-        .replace(/\t/g, "\\t");
-    } else {
-      return input
-        .replace(/\\n/g, "\n")
-        .replace(/\\r/g, "\r")
-        .replace(/\\t/g, "\t")
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, "\\");
-    }
-  }, [input, mode]);
+  const output = useMemo(() => transformBackslash(input, mode), [input, mode]);
 
   return (
     <ToolLayout>

@@ -7,23 +7,13 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { Download, Upload, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import QRCode from "qrcode";
 import jsQR from "jsqr";
-
-type Tab = "generate" | "read";
-type ECLevel = "L" | "M" | "Q" | "H";
-
-const EC_LEVELS: { value: ECLevel; label: string }[] = [
-  { value: "L", label: "Low (7%)" },
-  { value: "M", label: "Medium (15%)" },
-  { value: "Q", label: "Quartile (25%)" },
-  { value: "H", label: "High (30%)" },
-];
+import { emptyPixelDataUrl, generateQrDataUrl, QR_EC_LEVELS, type QrEcLevel, type QrTab } from "@/lib/tool-logic/media";
 
 export function QrCodeTool() {
-  const [tab, setTab] = useState<Tab>("generate");
+  const [tab, setTab] = useState<QrTab>("generate");
   const [input, setInput] = useLocalStorage("tool:qrcode-gen", "");
-  const [ecLevel, setEcLevel] = useLocalStorage<ECLevel>("tool:qrcode-ec", "H");
+  const [ecLevel, setEcLevel] = useLocalStorage<QrEcLevel>("tool:qrcode-ec", "H");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [genError, setGenError] = useState("");
   const [readResult, setReadResult] = useState("");
@@ -39,7 +29,7 @@ export function QrCodeTool() {
         return;
       }
       try {
-        const url = await QRCode.toDataURL(input, { width: 800, margin: 2, errorCorrectionLevel: ecLevel });
+        const url = await generateQrDataUrl(input, ecLevel);
         setQrDataUrl(url);
         setGenError("");
       } catch {
@@ -93,7 +83,7 @@ export function QrCodeTool() {
     if (file) readFile(file);
   }
 
-  const tabButtons = (["generate", "read"] as Tab[]).map((t) => (
+  const tabButtons = (["generate", "read"] as QrTab[]).map((t) => (
     <Button key={t} size="sm" variant={tab === t ? "default" : "outline"}
       onClick={() => setTab(t)} className="capitalize">
       {t}
@@ -131,7 +121,7 @@ export function QrCodeTool() {
           <div className="flex flex-col items-center gap-2">
             <div className="h-8" />
             <img
-              src={qrDataUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
+              src={qrDataUrl || emptyPixelDataUrl()}
               alt="QR Code"
               className="rounded border border-border transition-opacity duration-200 w-full max-w-[300px] aspect-square object-contain"
               style={{ opacity: qrDataUrl ? 1 : 0 }}
@@ -140,10 +130,10 @@ export function QrCodeTool() {
               className="flex flex-col items-center gap-2 w-full">
               <select
                 value={ecLevel}
-                onChange={(e) => setEcLevel(e.target.value as ECLevel)}
+                onChange={(e) => setEcLevel(e.target.value as QrEcLevel)}
                 className="h-7 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                {EC_LEVELS.map((ec) => (
+                {QR_EC_LEVELS.map((ec) => (
                   <option key={ec.value} value={ec.value}>{ec.label}</option>
                 ))}
               </select>

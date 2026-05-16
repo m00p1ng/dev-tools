@@ -6,8 +6,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import cronstrue from "cronstrue";
-import { CronExpressionParser } from "cron-parser";
+import { parseCronExpression } from "@/lib/tool-logic/web-time";
 
 const PRESETS = [
   { label: "Every minute", value: "* * * * *" },
@@ -28,25 +27,16 @@ export function CronTool() {
   const [error, setError] = useState("");
 
   const { description, nextRuns } = useMemo(() => {
-    try {
-      const d = cronstrue.toString(input, { throwExceptionOnParseError: true });
-      const interval = CronExpressionParser.parse(input);
-      const nr = Array.from({ length: 5 }, () => interval.next().toDate());
-      return { description: d, nextRuns: nr };
-    } catch {
-      return { description: "", nextRuns: [] as Date[] };
-    }
+    const result = parseCronExpression(input);
+    return result.ok ? result.value : { description: "", nextRuns: [] as Date[] };
   }, [input]);
 
   function handleChange(val: string) {
     setInput(val);
     setError("");
     if (!val) return;
-    try {
-      cronstrue.toString(val, { throwExceptionOnParseError: true });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Invalid cron expression");
-    }
+    const result = parseCronExpression(val);
+    if (!result.ok) setError(result.error);
   }
 
   return (

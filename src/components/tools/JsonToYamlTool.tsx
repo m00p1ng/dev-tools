@@ -6,19 +6,15 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
-import yaml from "js-yaml";
+import { jsonToYaml } from "@/lib/tool-logic/data";
 
 export function JsonToYamlTool() {
   const [input, setInput] = useLocalStorage("tool:json-to-yaml", "");
   const { isDragging, dropProps } = useDropText(setInput);
 
   const { output, error } = useMemo(() => {
-    if (!input) return { output: "", error: "" };
-    try {
-      return { output: yaml.dump(JSON.parse(input), { indent: 2 }), error: "" };
-    } catch (e) {
-      return { output: "", error: e instanceof Error ? e.message : "Invalid JSON" };
-    }
+    const result = jsonToYaml(input);
+    return result.ok ? { output: result.value, error: "" } : { output: "", error: result.error };
   }, [input]);
 
   return (

@@ -7,6 +7,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { LoremIpsum } from "lorem-ipsum";
 import { motion, AnimatePresence } from "framer-motion";
+import { clampNumber } from "@/lib/tool-logic/generators";
 
 const lorem = new LoremIpsum();
 
@@ -51,7 +52,7 @@ export function LoremIpsumTool() {
               value={countRaw}
               onChange={(e) => setCountRaw(e.target.value)}
               onBlur={() => {
-                const n = Math.max(1, Math.min(100, Number(countRaw) || 1));
+                const n = clampNumber(countRaw, 1, 100);
                 setCount(n);
                 setCountRaw(String(n));
               }}

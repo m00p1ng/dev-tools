@@ -14,6 +14,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import mermaid from "mermaid";
 import Editor from "react-simple-code-editor";
 import Prism from "prismjs";
+import { resolveSvgDimensions } from "@/lib/tool-logic/media";
 
 Prism.languages.mermaid = {
   keyword: /\b(graph|flowchart|sequenceDiagram|participant|loop|alt|else|opt|par|rect|critical|gantt|classDiagram|stateDiagram-v2|pie|erDiagram|journey|mindmap)\b/,
@@ -40,16 +41,7 @@ function downloadRaster(svg: string, format: "png" | "jpg") {
   const doc = parser.parseFromString(svg, "image/svg+xml");
   const svgEl = doc.querySelector("svg")!;
 
-  const vb = svgEl.getAttribute("viewBox");
-  let w = parseFloat(svgEl.getAttribute("width") ?? "0");
-  let h = parseFloat(svgEl.getAttribute("height") ?? "0");
-  if ((!w || !h) && vb) {
-    const parts = vb.split(/[\s,]+/);
-    w = parseFloat(parts[2]) || 800;
-    h = parseFloat(parts[3]) || 600;
-  }
-  w = w || 800;
-  h = h || 600;
+  const { width: w, height: h } = resolveSvgDimensions(svgEl);
   svgEl.setAttribute("width", String(w));
   svgEl.setAttribute("height", String(h));
 
@@ -110,7 +102,7 @@ export function MermaidTool() {
   const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
 
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default", suppressErrors: true });
+    mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default" });
     let active = true;
 
     if (!input.trim()) {

@@ -7,6 +7,7 @@ import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7 } from "uuid";
 import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
+import { generateObjectId } from "@/lib/tool-logic/generators";
 
 type Algorithm = "v1" | "v3" | "v4" | "v5" | "v7" | "ulid" | "objectid";
 
@@ -24,16 +25,6 @@ const NAMESPACES: Record<string, string> = {
   DNS: uuidv5.DNS,
   URL: uuidv5.URL,
 };
-
-let _oidCounter = Math.floor(Math.random() * 0xffffff);
-function generateObjectId(): string {
-  const ts = Math.floor(Date.now() / 1000).toString(16).padStart(8, "0");
-  const rnd = Array.from(crypto.getRandomValues(new Uint8Array(5)))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  _oidCounter = (_oidCounter + 1) & 0xffffff;
-  return ts + rnd + _oidCounter.toString(16).padStart(6, "0");
-}
 
 const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
 const itemVariants = {

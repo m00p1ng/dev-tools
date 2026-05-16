@@ -7,7 +7,7 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
-import { jsonrepair } from "jsonrepair";
+import { formatJson } from "@/lib/tool-logic/data";
 
 type Mode = "format" | "minify";
 
@@ -17,20 +17,10 @@ export function JsonFormatTool() {
   const { isDragging, dropProps } = useDropText(setInput);
 
   const { output, error, repaired } = useMemo(() => {
-    if (!input) return { output: "", error: "", repaired: false };
-    try {
-      const parsed = JSON.parse(input);
-      if (mode === "minify") return { output: JSON.stringify(parsed), error: "", repaired: false };
-      return { output: JSON.stringify(parsed, null, 2), error: "", repaired: false };
-    } catch (e) {
-      try {
-        const fixed = JSON.parse(jsonrepair(input));
-        if (mode === "minify") return { output: JSON.stringify(fixed), error: "", repaired: true };
-        return { output: JSON.stringify(fixed, null, 2), error: "", repaired: true };
-      } catch {
-        return { output: "", error: e instanceof Error ? e.message : "Invalid JSON", repaired: false };
-      }
-    }
+    const result = formatJson(input, mode);
+    return result.ok
+      ? { output: result.value, error: "", repaired: result.meta.repaired }
+      : { output: "", error: result.error, repaired: false };
   }, [input, mode]);
 
   return (

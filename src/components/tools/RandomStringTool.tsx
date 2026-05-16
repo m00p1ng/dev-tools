@@ -6,42 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { motion, AnimatePresence } from "framer-motion";
-
-const CHARSET = {
-  letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-  digits: "0123456789",
-  symbols: "!@#$%^&*()-_=+[]{}|;:,.<>?",
-};
-
-function randomChar(charset: string, rand: number): string {
-  return charset[rand % charset.length];
-}
-
-function generateString(length: number, charset: string, symbolCharset: string | null): string {
-  if (!charset) return "";
-  const rands = new Uint8Array(length + 4);
-  crypto.getRandomValues(rands);
-
-  if (!symbolCharset || length < 2) {
-    return Array.from(rands.slice(0, length), (b) => randomChar(charset, b)).join("");
-  }
-
-  const nonSymbol = charset.replace(new RegExp(`[${symbolCharset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]`, "g"), "");
-  const minSymbols = Math.max(1, Math.floor(length * 0.1));
-  const maxSymbols = Math.max(minSymbols, Math.floor(length * 0.2));
-  const symbolCount = minSymbols + (rands[length] % (maxSymbols - minSymbols + 1));
-
-  const chars: string[] = [
-    ...Array.from({ length: symbolCount }, (_, i) => randomChar(symbolCharset, rands[i])),
-    ...Array.from({ length: length - symbolCount }, (_, i) => randomChar(nonSymbol || charset, rands[symbolCount + i])),
-  ];
-
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = rands[i % rands.length] % (i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join("");
-}
+import { buildRandomCharset, clampNumber, generateRandomString, RANDOM_CHARSET } from "@/lib/tool-logic/generators";
 
 function SliderWithInput({
   label,
@@ -64,11 +29,9 @@ function SliderWithInput({
     setRaw(String(value));
   }
 
-  const clamp = (v: number) => Math.max(min, Math.min(max, v));
-
   const commit = () => {
     const n = Number(raw);
-    const clamped = clamp(isNaN(n) ? min : n);
+    const clamped = clampNumber(isNaN(n) ? min : n, min, max);
     setRaw(String(clamped));
     onChange(clamped);
   };
@@ -105,16 +68,13 @@ export function RandomStringTool() {
   const [options, setOptions] = useState({ letters: true, digits: true, symbols: false });
   const [version, setVersion] = useState(0);
 
-  const charset = Object.entries(options)
-    .filter(([, v]) => v)
-    .map(([k]) => CHARSET[k as keyof typeof CHARSET])
-    .join("");
+  const charset = buildRandomCharset(options);
 
-  const symbolCharset = options.symbols ? CHARSET.symbols : null;
+  const symbolCharset = options.symbols ? RANDOM_CHARSET.symbols : null;
 
   const results = useMemo(() => {
     void version;
-    return charset ? Array.from({ length: count }, () => generateString(length, charset, symbolCharset)) : [];
+    return charset ? Array.from({ length: count }, () => generateRandomString(length, charset, symbolCharset)) : [];
   }, [length, count, charset, symbolCharset, version]);
 
   const generate = () => setVersion((v) => v + 1);

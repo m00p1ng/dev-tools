@@ -5,47 +5,17 @@ import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { jwtDecode } from "jwt-decode";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  base64urlEncode,
+  decodeJwtToken,
+  signHS256,
+  verifyHS256,
+  type JwtParts,
+} from "@/lib/tool-logic/security";
 
 // ---- helpers ----
-
-function base64urlToBytes(b64url: string): Uint8Array {
-  const b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
-  const raw = atob(padded);
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
-}
-
-function base64urlEncode(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
-
-async function verifyHS256(token: string, secret: string, isBase64url: boolean): Promise<boolean> {
-  try {
-    const [h, p, sig] = token.split(".");
-    if (!h || !p || !sig) return false;
-    const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret);
-    const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    return crypto.subtle.verify("HMAC", key, base64urlToBytes(sig), new TextEncoder().encode(`${h}.${p}`));
-  } catch {
-    return false;
-  }
-}
-
-async function signHS256(signingInput: string, secret: string, isBase64url: boolean): Promise<string> {
-  const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret);
-  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
-  return btoa(String.fromCharCode(...new Uint8Array(sig)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
 
 function syntaxHighlight(json: string): string {
   const escaped = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -76,17 +46,6 @@ const CLAIM_LABELS: Record<string, string> = {
 };
 
 const TIME_CLAIMS = new Set(["exp", "nbf", "iat"]);
-
-// ---- interfaces ----
-
-interface JwtParts {
-  header: Record<string, unknown>;
-  payload: Record<string, unknown>;
-  signature: string;
-  isExpired: boolean;
-  expiresAt: string | null;
-  algorithm: string;
-}
 
 // ---- sub-components ----
 
@@ -243,23 +202,18 @@ export function JwtTool() {
       if (!skipPayloadSync.current) setPayloadEditStr("");
       return;
     }
-    try {
-      const header = jwtDecode<Record<string, unknown>>(val, { header: true });
-      const payload = jwtDecode<Record<string, unknown>>(val);
-      const signature = val.split(".")[2] ?? "";
-      const exp = typeof payload["exp"] === "number" ? payload["exp"] : null;
-      const isExpired = exp !== null ? exp * 1000 < Date.now() : false;
-      const expiresAt = exp ? new Date(exp * 1000).toLocaleString() : null;
-      const algorithm = typeof header["alg"] === "string" ? header["alg"] : "unknown";
-      setParts({ header, payload, signature, isExpired, expiresAt, algorithm });
+    const result = decodeJwtToken(val);
+    if (result.ok) {
+      const { payload } = result.value;
+      setParts(result.value);
       setError("");
       if (!skipPayloadSync.current) {
         setPayloadEditStr(JSON.stringify(payload, null, 2));
         setPayloadEditError("");
       }
-    } catch {
+    } else {
       setParts(null);
-      setError("Invalid JWT");
+      setError(result.error);
     }
   }
 

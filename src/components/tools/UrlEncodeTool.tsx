@@ -7,6 +7,7 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
+import { transformUrlComponent } from "@/lib/tool-logic/encoding";
 
 type Mode = "encode" | "decode";
 
@@ -16,12 +17,8 @@ export function UrlEncodeTool() {
   const { isDragging, dropProps } = useDropText(setInput);
 
   const { output, error } = useMemo(() => {
-    if (!input) return { output: "", error: "" };
-    try {
-      return { output: mode === "encode" ? encodeURIComponent(input) : decodeURIComponent(input), error: "" };
-    } catch {
-      return { output: "", error: mode === "encode" ? "Encoding failed" : "Invalid encoded string" };
-    }
+    const result = transformUrlComponent(input, mode);
+    return result.ok ? { output: result.value, error: "" } : { output: "", error: result.error };
   }, [input, mode]);
 
   return (

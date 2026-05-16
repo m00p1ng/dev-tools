@@ -4,12 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { motion } from "framer-motion";
-
-dayjs.extend(utc);
-dayjs.extend(relativeTime);
+import { formatWithGmt, parseUnixInput } from "@/lib/tool-logic/web-time";
 
 const listVariants = { visible: { transition: { staggerChildren: 0.06 } } };
 const itemVariants = {
@@ -26,27 +22,9 @@ export function UnixTimeTool() {
     return () => clearInterval(id);
   }, []);
 
-  const parsedDate = (() => {
-    if (!input.trim()) return null;
-    if (/^\d+$/.test(input.trim())) {
-      const num = Number(input.trim());
-      const d = input.trim().length >= 12 ? dayjs(num) : dayjs.unix(num);
-      return d.isValid() ? d : null;
-    }
-    const d = dayjs(input.trim());
-    return d.isValid() ? d : null;
-  })();
+  const parsedDate = parseUnixInput(input);
 
   const error = input.trim() && !parsedDate ? "Invalid input format" : "";
-
-  const formatWithGmt = (d: dayjs.Dayjs) => {
-    const offset = d.utcOffset();
-    const hours = Math.floor(Math.abs(offset) / 60);
-    const minutes = Math.abs(offset) % 60;
-    const sign = offset >= 0 ? "+" : "-";
-    const offsetStr = minutes === 0 ? `${sign}${hours}` : `${sign}${hours}:${minutes.toString().padStart(2, "0")}`;
-    return d.format("YYYY-MM-DD HH:mm:ss") + ` (GMT ${offsetStr})`;
-  };
 
   const localTimeValue = parsedDate ? formatWithGmt(parsedDate) : "";
 

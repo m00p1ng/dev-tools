@@ -7,7 +7,7 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
-import Papa from "papaparse";
+import { csvToJson } from "@/lib/tool-logic/data";
 
 export function CsvToJsonTool() {
   const [input, setInput] = useLocalStorage("tool:csv-to-json", "");
@@ -15,10 +15,8 @@ export function CsvToJsonTool() {
   const { isDragging, dropProps } = useDropText(setInput);
 
   const { output, error } = useMemo(() => {
-    if (!input.trim()) return { output: "", error: "" };
-    const result = Papa.parse(input.trim(), { header, skipEmptyLines: true, dynamicTyping: true });
-    if (result.errors.length) return { output: "", error: result.errors[0].message };
-    return { output: JSON.stringify(result.data, null, 2), error: "" };
+    const result = csvToJson(input, header);
+    return result.ok ? { output: result.value, error: "" } : { output: "", error: result.error };
   }, [input, header]);
 
   return (

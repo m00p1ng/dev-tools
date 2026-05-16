@@ -7,6 +7,7 @@ import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { cn } from "@/lib/utils";
+import { transformBase64 } from "@/lib/tool-logic/encoding";
 
 type Mode = "encode" | "decode";
 
@@ -16,20 +17,8 @@ export function Base64Tool() {
   const { isDragging, dropProps } = useDropText(setInput);
 
   const { output, error } = useMemo(() => {
-    if (!input) return { output: "", error: "" };
-    try {
-      if (mode === "encode") {
-        const bytes = new TextEncoder().encode(input);
-        const binary = Array.from(bytes, (b) => String.fromCharCode(b)).join("");
-        return { output: btoa(binary), error: "" };
-      } else {
-        const binary = atob(input.trim());
-        const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-        return { output: new TextDecoder().decode(bytes), error: "" };
-      }
-    } catch {
-      return { output: "", error: mode === "encode" ? "Encoding failed" : "Invalid Base64 string" };
-    }
+    const result = transformBase64(input, mode);
+    return result.ok ? { output: result.value, error: "" } : { output: "", error: result.error };
   }, [input, mode]);
 
   return (

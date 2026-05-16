@@ -6,19 +6,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-interface ParsedUrl {
-  protocol: string;
-  username: string;
-  password: string;
-  host: string;
-  hostname: string;
-  port: string;
-  pathname: string;
-  search: string;
-  hash: string;
-  params: [string, string][];
-}
+import { parseUrl, type ParsedUrl } from "@/lib/tool-logic/web-time";
 
 const listVariants = { visible: { transition: { staggerChildren: 0.05 } } };
 const itemVariants = {
@@ -97,28 +85,8 @@ export function UrlParserTool() {
 
   const { parsed, error } = useMemo<{ parsed: ParsedUrl | null; error: string }>(() => {
     if (!input) return { parsed: null, error: "" };
-    try {
-      const u = new URL(input);
-      const params: [string, string][] = [];
-      u.searchParams.forEach((v, k) => params.push([k, v]));
-      return {
-        parsed: {
-          protocol: u.protocol,
-          username: u.username,
-          password: u.password,
-          host: u.host,
-          hostname: u.hostname,
-          port: u.port,
-          pathname: u.pathname,
-          search: u.search,
-          hash: u.hash,
-          params,
-        },
-        error: "",
-      };
-    } catch {
-      return { parsed: null, error: "Invalid URL" };
-    }
+    const result = parseUrl(input);
+    return result.ok ? { parsed: result.value, error: "" } : { parsed: null, error: result.error };
   }, [input]);
 
   const rows: [string, React.ReactNode, string, string][] = parsed
