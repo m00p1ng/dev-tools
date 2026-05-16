@@ -320,15 +320,26 @@ export function JwtTool() {
   }
 
   useEffect(() => {
-    if (input) decode(input);
+    if (input) {
+      const timer = setTimeout(() => decode(input), 0);
+      return () => clearTimeout(timer);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!parts || parts.algorithm !== "HS256" || !secret) {
-      setSigVerified(null);
-      return;
-    }
-    verifyHS256(input, secret, isBase64Secret).then(setSigVerified);
+    let active = true;
+    const verify = async () => {
+      if (!parts || parts.algorithm !== "HS256" || !secret) {
+        if (active) setSigVerified(null);
+        return;
+      }
+      const result = await verifyHS256(input, secret, isBase64Secret);
+      if (active) setSigVerified(result);
+    };
+    verify();
+    return () => {
+      active = false;
+    };
   }, [secret, isBase64Secret, input, parts?.algorithm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

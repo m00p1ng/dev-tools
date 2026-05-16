@@ -103,17 +103,39 @@ export function MermaidTool() {
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default" });
+    let active = true;
+
     if (!input.trim()) {
-      if (svg !== "" || error !== "") {
-        setSvg("");
-        setError("");
-      }
-      return;
+      Promise.resolve().then(() => {
+        if (active) {
+          setSvg("");
+          setError("");
+        }
+      });
+      return () => {
+        active = false;
+      };
     }
+
     const id = `mermaid-${++idRef.current}`;
     mermaid.render(id, input)
-      .then(({ svg }) => { setSvg(svg); setError(""); setPan({ x: 0, y: 0 }); })
-      .catch((e) => { setSvg(""); setError(e?.message ?? "Invalid diagram"); });
+      .then(({ svg }) => {
+        if (active) {
+          setSvg(svg);
+          setError("");
+          setPan({ x: 0, y: 0 });
+        }
+      })
+      .catch((e) => {
+        if (active) {
+          setSvg("");
+          setError(e?.message ?? "Invalid diagram");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, [input, isDark]);
 
   return (

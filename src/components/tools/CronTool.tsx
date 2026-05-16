@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,17 +19,16 @@ export function CronTool() {
   const [input, setInput] = useLocalStorage("tool:cron", "0 9 * * 1");
   const [error, setError] = useState("");
 
-  let description = "";
-  let nextRuns: Date[] = [];
-
-  try {
-    description = cronstrue.toString(input, { throwExceptionOnParseError: true });
-    const interval = CronExpressionParser.parse(input);
-    nextRuns = Array.from({ length: 5 }, () => interval.next().toDate());
-  } catch {
-    description = "";
-    nextRuns = [];
-  }
+  const { description, nextRuns } = useMemo(() => {
+    try {
+      const d = cronstrue.toString(input, { throwExceptionOnParseError: true });
+      const interval = CronExpressionParser.parse(input);
+      const nr = Array.from({ length: 5 }, () => interval.next().toDate());
+      return { description: d, nextRuns: nr };
+    } catch {
+      return { description: "", nextRuns: [] as Date[] };
+    }
+  }, [input]);
 
   function handleChange(val: string) {
     setInput(val);

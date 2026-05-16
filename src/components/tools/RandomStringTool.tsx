@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -56,11 +56,13 @@ function SliderWithInput({
   max: number;
   onChange: (v: number) => void;
 }) {
+  const [prevValue, setPrevValue] = useState(value);
   const [raw, setRaw] = useState(String(value));
 
-  useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value);
     setRaw(String(value));
-  }, [value]);
+  }
 
   const clamp = (v: number) => Math.max(min, Math.min(max, v));
 
@@ -105,7 +107,7 @@ export function RandomStringTool() {
     digits: true,
     symbols: false,
   });
-  const [results, setResults] = useState<string[]>([]);
+  const [version, setVersion] = useState(0);
 
   const charset = Object.entries(options)
     .filter(([, v]) => v)
@@ -114,12 +116,14 @@ export function RandomStringTool() {
 
   const symbolCharset = options.symbols ? CHARSET.symbols : null;
 
-  useEffect(() => {
-    setResults(charset ? Array.from({ length: count }, () => generateString(length, charset, symbolCharset)) : []);
-  }, [length, count, charset, symbolCharset]);
+  const results = useMemo(() => {
+    // version is used to trigger regeneration
+    void version;
+    return charset ? Array.from({ length: count }, () => generateString(length, charset, symbolCharset)) : [];
+  }, [length, count, charset, symbolCharset, version]);
 
   const generate = () => {
-    setResults(charset ? Array.from({ length: count }, () => generateString(length, charset, symbolCharset)) : []);
+    setVersion((v) => v + 1);
   };
 
   const toggle = (key: keyof typeof options) => {

@@ -16,10 +16,12 @@ export function LoremIpsumTool() {
   const [output, setOutput] = useState("");
 
   function generate() {
-    let result = "";
-    if (unit === "words") result = lorem.generateWords(count);
-    else if (unit === "sentences") result = lorem.generateSentences(count);
-    else result = lorem.generateParagraphs(count);
+    const result =
+      unit === "words"
+        ? lorem.generateWords(count)
+        : unit === "sentences"
+          ? lorem.generateSentences(count)
+          : lorem.generateParagraphs(count);
     setOutput(result);
   }
 

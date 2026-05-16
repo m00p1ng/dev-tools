@@ -78,8 +78,8 @@ export function UnixTimeTool() {
               { label: "Local Time", value: localTimeValue },
               { label: "UTC Time", value: parsedDate.utc().format("YYYY-MM-DD HH:mm:ss") + " UTC" },
               { label: "Relative", value: parsedDate.fromNow() },
-              { label: "ISO 8601", value: parsedDate.toISOString(), truncate: true },
-            ].map((item) => (
+              { label: "ISO 8601", value: parsedDate.toISOString(), truncate: true, fullWidth: true },
+            ].map((item: any) => (
               <div 
                 key={item.label} 
                 className={`rounded-lg border border-border bg-card p-3 space-y-1 shadow-sm ${item.fullWidth ? "col-span-2" : ""}`}

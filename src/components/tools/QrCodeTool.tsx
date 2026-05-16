@@ -20,8 +20,12 @@ export function QrCodeTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!input.trim()) { setQrDataUrl(""); setGenError(""); return; }
     const timer = setTimeout(async () => {
+      if (!input.trim()) {
+        setQrDataUrl("");
+        setGenError("");
+        return;
+      }
       try {
         const url = await QRCode.toDataURL(input, { width: 300, margin: 2 });
         setQrDataUrl(url);
@@ -29,7 +33,7 @@ export function QrCodeTool() {
       } catch {
         setGenError("QR generation failed");
       }
-    }, 300);
+    }, input.trim() ? 300 : 0);
     return () => clearTimeout(timer);
   }, [input]);
 
