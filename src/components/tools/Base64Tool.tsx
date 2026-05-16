@@ -36,6 +36,10 @@ export function Base64Tool() {
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+          onClick={() => setInput("Hello, World!")}>
+          Example
+        </Button>
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}

@@ -33,6 +33,10 @@ export function JsonFormatTool() {
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+          onClick={() => setInput('{"name":"Alice","age":30,"active":true,"address":{"city":"Bangkok"}}')}>
+          Example
+        </Button>
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}

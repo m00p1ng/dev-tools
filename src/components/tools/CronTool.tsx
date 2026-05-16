@@ -24,13 +24,9 @@ export function CronTool() {
     description = cronstrue.toString(input, { throwExceptionOnParseError: true });
     const interval = CronExpressionParser.parse(input);
     nextRuns = Array.from({ length: 5 }, () => interval.next().toDate());
-    setError("");
   } catch {
     description = "";
     nextRuns = [];
-    if (input) {
-      // only set error if something was typed
-    }
   }
 
   function handleChange(val: string) {

@@ -37,6 +37,10 @@ export function BackslashTool() {
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+          onClick={() => setInput('Hello "World"\nNew line\tTabbed')}>
+          Example
+        </Button>
       </div>
 
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">

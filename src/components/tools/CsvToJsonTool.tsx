@@ -25,6 +25,10 @@ export function CsvToJsonTool() {
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+          onClick={() => setInput("name,age,city\nAlice,30,Bangkok\nBob,25,London")}>
+          Example
+        </Button>
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={header} onCheckedChange={setHeader} />
           First row as header

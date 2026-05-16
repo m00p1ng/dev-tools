@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface ParsedUrl {
@@ -57,12 +58,18 @@ export function UrlParserTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <Input
-        placeholder="https://example.com/path?foo=bar&baz=qux#section"
-        value={input}
-        onChange={(e) => parse(e.target.value)}
-        className="font-mono text-xs"
-      />
+      <div className="flex gap-2 items-center">
+        <Input
+          placeholder="https://example.com/path?foo=bar&baz=qux#section"
+          value={input}
+          onChange={(e) => parse(e.target.value)}
+          className="font-mono text-xs"
+        />
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground shrink-0"
+          onClick={() => parse("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}>
+          Example
+        </Button>
+      </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 

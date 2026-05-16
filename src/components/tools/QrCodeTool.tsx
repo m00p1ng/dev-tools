@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,16 +18,19 @@ export function QrCodeTool() {
   const [readError, setReadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function generateQr() {
-    if (!input.trim()) { setGenError("Enter text to encode"); return; }
-    try {
-      const url = await QRCode.toDataURL(input, { width: 300, margin: 2 });
-      setQrDataUrl(url);
-      setGenError("");
-    } catch {
-      setGenError("QR generation failed");
-    }
-  }
+  useEffect(() => {
+    if (!input.trim()) { setQrDataUrl(""); setGenError(""); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const url = await QRCode.toDataURL(input, { width: 300, margin: 2 });
+        setQrDataUrl(url);
+        setGenError("");
+      } catch {
+        setGenError("QR generation failed");
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [input]);
 
   function downloadQr() {
     const a = document.createElement("a");
@@ -94,21 +97,27 @@ export function QrCodeTool() {
               className="flex-1 resize-none font-mono text-xs"
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={generateQr}>Generate QR</Button>
-              {qrDataUrl && (
-                <Button size="sm" variant="outline" onClick={downloadQr}>
-                  <Download className="h-3.5 w-3.5 mr-1" /> Download
-                </Button>
-              )}
+              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+                onClick={() => setInput("https://example.com")}>
+                Example
+              </Button>
+            </div>
+            <div className="flex gap-2" style={{ opacity: qrDataUrl ? 1 : 0, pointerEvents: qrDataUrl ? "auto" : "none", transition: "opacity 0.2s" }}>
+              <Button size="sm" variant="outline" onClick={downloadQr}>
+                <Download className="h-3.5 w-3.5 mr-1" /> Download
+              </Button>
             </div>
             {genError && <Badge variant="destructive" className="self-start text-xs">{genError}</Badge>}
           </div>
 
-          {qrDataUrl && (
-            <div className="flex flex-col items-center gap-2 shrink-0">
-              <img src={qrDataUrl} alt="QR Code" className="rounded border border-border" style={{ width: 200, height: 200 }} />
-            </div>
-          )}
+          <div className="flex flex-col items-center gap-2 shrink-0" style={{ width: 200 }}>
+            <img
+              src={qrDataUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
+              alt="QR Code"
+              className="rounded border border-border transition-opacity duration-200"
+              style={{ width: 200, height: 200, opacity: qrDataUrl ? 1 : 0 }}
+            />
+          </div>
         </div>
       )}
 

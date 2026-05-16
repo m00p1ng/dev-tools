@@ -223,9 +223,15 @@ export function JwtTool() {
     <div className="flex flex-col lg:flex-row h-full gap-4 overflow-auto lg:overflow-hidden">
       {/* LEFT: encoded token */}
       <div className="flex flex-col lg:w-2/5 gap-2 min-h-0">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Encoded Token
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Encoded Token
+          </span>
+          <Button size="sm" variant="ghost" className="text-xs text-muted-foreground h-auto py-0"
+            onClick={() => decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")}>
+            Example
+          </Button>
+        </div>
 
         {/* color overlay textarea */}
         <div className="relative flex-1 min-h-48 rounded-md border border-border bg-muted/20 overflow-hidden">
