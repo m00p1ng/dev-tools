@@ -1,7 +1,47 @@
-# Tauri + React + Typescript
+# Dev Tools
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+A cross-platform desktop app with 18 offline-first developer utilities. Built with Tauri v2, React, and TypeScript.
 
-## Recommended IDE Setup
+![Dev Tools screenshot](public/screenshot.png)
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Tools
+
+| Category | Tools |
+|---|---|
+| **Text** | JSON Format/Validate, Base64 Encode/Decode, URL Encode/Decode, URL Parser, Backslash Escape/Unescape, JWT Debugger |
+| **Time** | Unix Time Converter |
+| **Converters** | YAML ↔ JSON, JSON ↔ CSV |
+| **Generators** | UUID Generator, Lorem Ipsum, Hash (MD5/SHA-1/SHA-256/SHA-512), Random String, QR Code |
+| **Misc** | Markdown Preview, Cron Parser |
+
+## Features
+
+- Searchable sidebar — filter tools by name instantly
+- Dark / Light / OS auto theme
+- Last input restored per tool across restarts (localStorage)
+- Global hotkey `Cmd+Shift+D` to focus from any app
+- Fully offline — no network requests
+
+## Stack
+
+- [Tauri v2](https://tauri.app) — native shell
+- React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui
+- Vite
+
+## Development
+
+```bash
+bun install
+bun run tauri dev
+```
+
+## Build
+
+```bash
+bun run tauri build
+```
+
+Produces platform-native installers in `src-tauri/target/release/bundle/`.
+
+CI builds for macOS, Windows, and Linux are triggered on tag push via GitHub Actions.
