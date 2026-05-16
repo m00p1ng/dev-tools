@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useDropText } from "@/hooks/useDropText";
+import { useToolKeys } from "@/hooks/useToolKeys";
 import { jwtDecode } from "jwt-decode";
-import { Copy, Check, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // ---- helpers ----
 
@@ -87,25 +90,6 @@ interface JwtParts {
 }
 
 // ---- sub-components ----
-
-function useCopy() {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback((text: string) => {
-    copyToClipboard(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }, []);
-  return { copied, copy };
-}
-
-function CopyButton({ text }: { text: string }) {
-  const { copied, copy } = useCopy();
-  return (
-    <Button variant="ghost" size="icon-xs" onClick={() => copy(text)} className="text-muted-foreground">
-      {copied ? <Check className="size-3 text-green-500" /> : <Copy className="size-3" />}
-    </Button>
-  );
-}
 
 function JsonPanel({ data }: { data: object }) {
   const json = JSON.stringify(data, null, 2);
@@ -249,6 +233,9 @@ export function JwtTool() {
   const [payloadEditError, setPayloadEditError] = useState("");
   const skipPayloadSync = useRef(false);
 
+  const { isDragging, dropProps } = useDropText((text) => decode(text.trim()));
+  useToolKeys({ onClear: () => { decode(""); setSecret(""); } });
+
   function decode(val: string) {
     setInput(val);
     setSigVerified(null);
@@ -364,12 +351,13 @@ export function JwtTool() {
         </div>
 
         {/* color overlay textarea */}
-        <div className="relative min-h-48 h-48 lg:h-64 rounded-md border border-border bg-muted/20 overflow-hidden">
+        <div className={cn("relative min-h-48 h-48 lg:h-64 rounded-md border border-border bg-muted/20 overflow-hidden transition-all duration-150",
+          isDragging && "ring-2 ring-primary/50 bg-primary/5")}>
           <div className="absolute inset-0 p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
             {input ? (
               <ColoredToken token={input} />
             ) : (
-              <span className="text-muted-foreground">Paste JWT token here...</span>
+              <span className="text-muted-foreground">Paste JWT token here… or drop a file</span>
             )}
           </div>
           <textarea
@@ -377,6 +365,7 @@ export function JwtTool() {
             onChange={(e) => decode(e.target.value)}
             className="absolute inset-0 w-full h-full p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all bg-transparent text-transparent caret-foreground resize-none outline-none"
             spellCheck={false}
+            {...dropProps}
           />
         </div>
 

@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { copyToClipboard } from "@/lib/copy";
 
 interface CodeBlockProps {
   code: string;
@@ -21,14 +19,7 @@ export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
 
   return (
     <div className="relative h-full overflow-auto rounded-md border border-input bg-background">
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute right-2 top-2 z-10 h-6 w-6"
-        onClick={() => copyToClipboard(code)}
-      >
-        <Copy className="h-3 w-3" />
-      </Button>
+      <CopyButton text={code} className="absolute right-2 top-2 z-10" />
       <SyntaxHighlighter
         language={language}
         style={oneLight}

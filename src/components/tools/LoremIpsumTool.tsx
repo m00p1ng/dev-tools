@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
+import { RotateCcw } from "lucide-react";
 import { LoremIpsum } from "lorem-ipsum";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { motion, AnimatePresence } from "framer-motion";
 
 const lorem = new LoremIpsum();
 
@@ -14,6 +17,7 @@ export function LoremIpsumTool() {
   const [unit, setUnit] = useState<Unit>("paragraphs");
   const [count, setCount] = useState(3);
   const [output, setOutput] = useState("");
+  const [genKey, setGenKey] = useState(0);
 
   function generate() {
     const result =
@@ -23,7 +27,10 @@ export function LoremIpsumTool() {
           ? lorem.generateSentences(count)
           : lorem.generateParagraphs(count);
     setOutput(result);
+    setGenKey((k) => k + 1);
   }
+
+  useToolKeys({ onSubmit: generate });
 
   return (
     <div className="flex h-full flex-col gap-3">
@@ -49,22 +56,34 @@ export function LoremIpsumTool() {
 
         {output && (
           <>
-            <Button size="sm" variant="outline" onClick={() => copyToClipboard(output)}>
-              <Copy className="h-3.5 w-3.5 mr-1" /> Copy
-            </Button>
+            <CopyButton text={output} withLabel />
             <Button size="sm" variant="ghost" onClick={() => setOutput("")}>
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           </>
         )}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘↵</Kbd> generate
+        </span>
       </div>
 
-      <Textarea
-        readOnly
-        value={output}
-        placeholder="Generated text will appear here..."
-        className="flex-1 resize-none text-sm"
-      />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={genKey}
+          className="flex-1"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Textarea
+            readOnly
+            value={output}
+            placeholder="Generated text will appear here..."
+            className="h-full resize-none text-sm"
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

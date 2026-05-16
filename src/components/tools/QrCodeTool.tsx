@@ -2,9 +2,13 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Download, Upload, Copy, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { useDropText } from "@/hooks/useDropText";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { Download, Upload, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
 
@@ -27,6 +31,9 @@ export function QrCodeTool() {
   const [readResult, setReadResult] = useState("");
   const [readError, setReadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isDragging: isGenDragging, dropProps: genDropProps } = useDropText(setInput);
+
+  useToolKeys({ onClear: () => setInput("") });
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -104,7 +111,10 @@ export function QrCodeTool() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">{tabButtons}</div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Kbd>⌘K</Kbd> clear
+                </span>
                 <Button size="sm" variant="ghost" onClick={() => setInput("")}>
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
@@ -115,10 +125,12 @@ export function QrCodeTool() {
               </div>
             </div>
             <Textarea
-              placeholder="Text or URL to encode..."
+              placeholder="Text or URL to encode… or drop a file"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 resize-none font-mono text-xs"
+              className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
+                isGenDragging && "ring-2 ring-primary/50 bg-primary/5")}
+              {...genDropProps}
             />
             {genError && <Badge variant="destructive" className="self-start text-xs">{genError}</Badge>}
           </div>
@@ -131,7 +143,8 @@ export function QrCodeTool() {
               className="rounded border border-border transition-opacity duration-200 w-full max-w-[300px] aspect-square object-contain"
               style={{ opacity: qrDataUrl ? 1 : 0 }}
             />
-            <div style={{ opacity: qrDataUrl ? 1 : 0, pointerEvents: qrDataUrl ? "auto" : "none", transition: "opacity 0.2s" }} className="flex flex-col items-center gap-2 w-full">
+            <div style={{ opacity: qrDataUrl ? 1 : 0, pointerEvents: qrDataUrl ? "auto" : "none", transition: "opacity 0.2s" }}
+              className="flex flex-col items-center gap-2 w-full">
               <select
                 value={ecLevel}
                 onChange={(e) => setEcLevel(e.target.value as ECLevel)}
@@ -173,9 +186,7 @@ export function QrCodeTool() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Decoded content</p>
-                <Button size="sm" variant="outline" onClick={() => copyToClipboard(readResult)}>
-                  <Copy className="h-3.5 w-3.5 mr-1" /> Copy
-                </Button>
+                <CopyButton text={readResult} withLabel />
               </div>
               <Textarea readOnly value={readResult} className="font-mono text-xs resize-none h-24" />
             </div>

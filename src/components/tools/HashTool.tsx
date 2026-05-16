@@ -2,17 +2,33 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Copy, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { useDropText } from "@/hooks/useDropText";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { RotateCcw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import CryptoJS from "crypto-js";
 
 const ALGOS = ["MD5", "SHA-1", "SHA-256", "SHA-512"] as const;
 type Algo = typeof ALGOS[number];
 
+const listVariants = {
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 25 } },
+};
+
 export function HashTool() {
   const [input, setInput] = useLocalStorage("tool:hash", "");
   const [encoding, setEncoding] = useState<"hex" | "base64">("hex");
+  const { isDragging, dropProps } = useDropText(setInput);
+
+  useToolKeys({ onClear: () => setInput("") });
 
   const results: Record<Algo, string> = {} as Record<Algo, string>;
   if (input) {
@@ -33,7 +49,7 @@ export function HashTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <div className="flex gap-1">
           {(["hex", "base64"] as const).map((enc) => (
             <Button key={enc} size="sm" variant={encoding === enc ? "default" : "outline"}
@@ -49,33 +65,43 @@ export function HashTool() {
           onClick={() => setInput("Hello, World!")}>
           Example
         </Button>
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘K</Kbd> clear
+        </span>
       </div>
 
       <Textarea
-        placeholder="Enter text to hash..."
+        placeholder="Enter text to hash… or drop a file"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="resize-none font-mono text-xs h-24"
+        className={cn("resize-none font-mono text-xs h-24 transition-all duration-150",
+          isDragging && "ring-2 ring-primary/50 bg-primary/5")}
+        {...dropProps}
       />
 
-      <div className="flex-1 overflow-auto space-y-2">
-        {ALGOS.map((algo) => (
-          <div key={algo} className="rounded-lg border border-border p-3">
-            <div className="flex items-center justify-between mb-1">
-              <Badge variant="outline" className="text-xs">{algo}</Badge>
-              {input && (
-                <Button size="icon" variant="ghost" className="h-6 w-6"
-                  onClick={() => copyToClipboard(results[algo])}>
-                  <Copy className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-            <p className="font-mono text-sm break-all text-muted-foreground">
-              {input ? results[algo] : "—"}
-            </p>
-          </div>
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={encoding + (input ? "data" : "empty")}
+          className="flex-1 overflow-auto space-y-2"
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {ALGOS.map((algo) => (
+            <motion.div key={algo} variants={itemVariants}>
+              <div className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
+                <div className="flex items-center justify-between mb-1">
+                  <Badge variant="outline" className="text-xs">{algo}</Badge>
+                  {input && <CopyButton text={results[algo]} />}
+                </div>
+                <p className="font-mono text-sm break-all text-muted-foreground">
+                  {input ? results[algo] : "—"}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

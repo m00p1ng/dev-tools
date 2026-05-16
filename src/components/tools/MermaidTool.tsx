@@ -8,8 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RotateCcw, Download, Info, Copy, ZoomIn, ZoomOut } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { RotateCcw, Download, Info, ZoomIn, ZoomOut } from "lucide-react";
+import { CopyButton } from "@/components/ui/copy-button";
+import { useToolKeys } from "@/hooks/useToolKeys";
 import { useTheme } from "@/hooks/useTheme";
 import mermaid from "mermaid";
 import Editor from "react-simple-code-editor";
@@ -91,6 +92,8 @@ const EXAMPLE = `graph TD
 export function MermaidTool() {
   const [input, setInput] = useLocalStorage("tool:mermaid", EXAMPLE);
   const [svg, setSvg] = useState("");
+
+  useToolKeys({ onClear: () => setInput("") });
   const [error, setError] = useState("");
   const idRef = useRef(0);
   const { theme } = useTheme();
@@ -160,16 +163,7 @@ export function MermaidTool() {
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <div className="relative h-full overflow-auto rounded-md border border-input bg-background text-xs">
-          {input && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="absolute right-2 top-2 z-10 h-6 w-6"
-              onClick={() => copyToClipboard(input)}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-          )}
+          {input && <CopyButton text={input} className="absolute right-2 top-2 z-10" />}
           <Editor
             value={input}
             onValueChange={setInput}

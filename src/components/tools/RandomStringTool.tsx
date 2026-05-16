@@ -3,8 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/copy";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CHARSET = {
   letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -35,7 +39,6 @@ function generateString(length: number, charset: string, symbolCharset: string |
     ...Array.from({ length: length - symbolCount }, (_, i) => randomChar(nonSymbol || charset, rands[symbolCount + i])),
   ];
 
-  // Fisher-Yates shuffle using last 2 random bytes as seed index
   for (let i = chars.length - 1; i > 0; i--) {
     const j = rands[i % rands.length] % (i + 1);
     [chars[i], chars[j]] = [chars[j], chars[i]];
@@ -88,25 +91,21 @@ function SliderWithInput({
           className="h-7 w-20 text-center font-mono text-sm"
         />
       </div>
-      <Slider
-        min={min}
-        max={max}
-        step={1}
-        value={[value]}
-        onValueChange={([v]) => onChange(v)}
-      />
+      <Slider min={min} max={max} step={1} value={[value]} onValueChange={([v]) => onChange(v)} />
     </div>
   );
 }
 
+const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
+const itemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 400, damping: 30 } },
+};
+
 export function RandomStringTool() {
   const [length, setLength] = useState(32);
   const [count, setCount] = useState(1);
-  const [options, setOptions] = useState({
-    letters: true,
-    digits: true,
-    symbols: false,
-  });
+  const [options, setOptions] = useState({ letters: true, digits: true, symbols: false });
   const [version, setVersion] = useState(0);
 
   const charset = Object.entries(options)
@@ -117,14 +116,13 @@ export function RandomStringTool() {
   const symbolCharset = options.symbols ? CHARSET.symbols : null;
 
   const results = useMemo(() => {
-    // version is used to trigger regeneration
     void version;
     return charset ? Array.from({ length: count }, () => generateString(length, charset, symbolCharset)) : [];
   }, [length, count, charset, symbolCharset, version]);
 
-  const generate = () => {
-    setVersion((v) => v + 1);
-  };
+  const generate = () => setVersion((v) => v + 1);
+
+  useToolKeys({ onSubmit: generate });
 
   const toggle = (key: keyof typeof options) => {
     setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -146,26 +144,36 @@ export function RandomStringTool() {
         ))}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button size="sm" onClick={generate} disabled={!charset}>Generate</Button>
         {results.length > 1 && (
           <Button size="sm" variant="outline" onClick={() => copyToClipboard(results.join("\n"))}>
             <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
           </Button>
         )}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘↵</Kbd> generate
+        </span>
       </div>
 
-      <div className="flex-1 overflow-auto space-y-1">
-        {results.map((s, i) => (
-          <div key={i} className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted">
-            <span className="font-mono text-sm flex-1 break-all select-all">{s}</span>
-            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100"
-              onClick={() => copyToClipboard(s)}>
-              <Copy className="h-3 w-3" />
-            </Button>
-          </div>
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={version}
+          className="flex-1 overflow-auto space-y-1"
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {results.map((s, i) => (
+            <motion.div key={i} variants={itemVariants}>
+              <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
+                <span className="font-mono text-sm flex-1 break-all select-all">{s}</span>
+                <CopyButton text={s} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

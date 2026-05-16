@@ -2,16 +2,27 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
 import { Copy, Plus, Minus, RotateCcw } from "lucide-react";
 import { copyToClipboard } from "@/lib/copy";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { motion, AnimatePresence } from "framer-motion";
 
 type UuidVersion = "v1" | "v4" | "v7";
+
+const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
+const itemVariants = {
+  hidden: { opacity: 0, x: -8 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 400, damping: 30 } },
+};
 
 export function UuidTool() {
   const [version, setVersion] = useState<UuidVersion>("v4");
   const [count, setCount] = useState(1);
   const [uuids, setUuids] = useState<string[]>([]);
+  const [genKey, setGenKey] = useState(0);
 
   function generate() {
     setUuids(
@@ -21,7 +32,10 @@ export function UuidTool() {
         return uuidv4();
       })
     );
+    setGenKey((k) => k + 1);
   }
+
+  useToolKeys({ onSubmit: generate });
 
   function copyAll() {
     copyToClipboard(uuids.join("\n"));
@@ -32,12 +46,8 @@ export function UuidTool() {
       <div className="flex flex-wrap gap-2 items-center">
         <div className="flex gap-1">
           {(["v1", "v4", "v7"] as UuidVersion[]).map((v) => (
-            <Button
-              key={v}
-              size="sm"
-              variant={version === v ? "default" : "outline"}
-              onClick={() => setVersion(v)}
-            >
+            <Button key={v} size="sm" variant={version === v ? "default" : "outline"}
+              onClick={() => setVersion(v)}>
               {v.toUpperCase()}
             </Button>
           ))}
@@ -73,24 +83,30 @@ export function UuidTool() {
             </Button>
           </>
         )}
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘↵</Kbd> generate
+        </span>
       </div>
 
-      <div className="flex-1 overflow-auto space-y-1">
-        {uuids.map((id) => (
-          <div key={id} className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted">
-            <Badge variant="outline" className="font-mono text-xs shrink-0">{version}</Badge>
-            <span className="font-mono text-sm flex-1 select-all">{id}</span>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100"
-              onClick={() => copyToClipboard(id)}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-          </div>
-        ))}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={genKey}
+          className="flex-1 overflow-auto space-y-1"
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {uuids.map((id) => (
+            <motion.div key={id} variants={itemVariants}>
+              <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
+                <Badge variant="outline" className="font-mono text-xs shrink-0">{version}</Badge>
+                <span className="font-mono text-sm flex-1 select-all">{id}</span>
+                <CopyButton text={id} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

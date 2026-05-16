@@ -2,8 +2,14 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useDropText } from "@/hooks/useDropText";
+import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface ParsedUrl {
   protocol: string;
@@ -16,10 +22,19 @@ interface ParsedUrl {
   params: [string, string][];
 }
 
+const listVariants = { visible: { transition: { staggerChildren: 0.05 } } };
+const itemVariants = {
+  hidden: { opacity: 0, x: -6 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 350, damping: 28 } },
+};
+
 export function UrlParserTool() {
   const [input, setInput] = useLocalStorage("tool:url-parser", "");
   const [parsed, setParsed] = useState<ParsedUrl | null>(null);
   const [error, setError] = useState("");
+  const { isDragging, dropProps } = useDropText((text) => parse(text.trim()));
+
+  useToolKeys({ onClear: () => parse("") });
 
   function parse(val: string) {
     setInput(val);
@@ -65,7 +80,9 @@ export function UrlParserTool() {
           value={input}
           onChange={(e) => parse(e.target.value)}
           rows={3}
-          className="font-mono text-xs resize-none"
+          className={cn("font-mono text-xs resize-none transition-all duration-150",
+            isDragging && "ring-2 ring-primary/50 bg-primary/5")}
+          {...dropProps}
         />
         <Button size="sm" variant="ghost" className="shrink-0" onClick={() => parse("")}>
           <RotateCcw className="h-3.5 w-3.5" />
@@ -75,41 +92,63 @@ export function UrlParserTool() {
           Example
         </Button>
       </div>
+      <div className="flex items-center justify-end">
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘K</Kbd> clear · drop URL file
+        </span>
+      </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
       {parsed && (
         <div className="space-y-3 overflow-auto">
-          <table className="w-full text-sm">
+          <motion.table
+            className="w-full text-sm"
+            variants={listVariants}
+            initial="hidden"
+            animate="visible"
+          >
             <tbody>
               {rows.map(([label, value]) => (
-                <tr key={label} className="border-b border-border">
+                <motion.tr key={label} variants={itemVariants} className="group border-b border-border">
                   <td className="py-2 pr-4 font-medium text-muted-foreground w-24">{label}</td>
-                  <td className="py-2 font-mono text-xs break-all">{value}</td>
-                </tr>
+                  <td className="py-2 font-mono text-xs break-all flex-1">{value}</td>
+                  <td className="py-2 w-8">
+                    <CopyButton text={value} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </td>
+                </motion.tr>
               ))}
             </tbody>
-          </table>
+          </motion.table>
 
           {parsed.params.length > 0 && (
             <div>
               <p className="text-sm font-medium mb-2">Query Parameters</p>
-              <table className="w-full text-sm">
+              <motion.table
+                className="w-full text-sm"
+                variants={listVariants}
+                initial="hidden"
+                animate="visible"
+              >
                 <thead>
                   <tr className="border-b border-border">
                     <th className="py-1.5 text-left font-medium text-muted-foreground">Key</th>
                     <th className="py-1.5 text-left font-medium text-muted-foreground">Value</th>
+                    <th className="py-1.5 w-8" />
                   </tr>
                 </thead>
                 <tbody>
                   {parsed.params.map(([k, v]) => (
-                    <tr key={k} className="border-b border-border">
+                    <motion.tr key={k} variants={itemVariants} className="group border-b border-border">
                       <td className="py-1.5 pr-4 font-mono text-xs">{k}</td>
                       <td className="py-1.5 font-mono text-xs break-all">{v}</td>
-                    </tr>
+                      <td className="py-1.5">
+                        <CopyButton text={v} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </td>
+                    </motion.tr>
                   ))}
                 </tbody>
-              </table>
+              </motion.table>
             </div>
           )}
         </div>

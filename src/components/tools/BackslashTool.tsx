@@ -1,15 +1,22 @@
 import { useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Copy, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { useDropText } from "@/hooks/useDropText";
+import { useToolKeys } from "@/hooks/useToolKeys";
+import { RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Mode = "escape" | "unescape";
 
 export function BackslashTool() {
   const [input, setInput] = useLocalStorage("tool:backslash", "");
   const [mode, setMode] = useState<Mode>("escape");
+  const { isDragging, dropProps } = useDropText(setInput);
+
+  useToolKeys({ onClear: () => setInput("") });
 
   const output = useMemo(() => {
     if (!input) return "";
@@ -32,9 +39,13 @@ export function BackslashTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex gap-2">
-        <Button size="sm" variant={mode === "escape" ? "default" : "outline"} onClick={() => { setMode("escape"); if (output) setInput(output); }}>Escape</Button>
-        <Button size="sm" variant={mode === "unescape" ? "default" : "outline"} onClick={() => { setMode("unescape"); if (output) setInput(output); }}>Unescape</Button>
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex gap-1">
+          <Button size="sm" variant={mode === "escape" ? "default" : "outline"}
+            onClick={() => { setMode("escape"); if (output) setInput(output); }}>Escape</Button>
+          <Button size="sm" variant={mode === "unescape" ? "default" : "outline"}
+            onClick={() => { setMode("unescape"); if (output) setInput(output); }}>Unescape</Button>
+        </div>
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
@@ -42,14 +53,19 @@ export function BackslashTool() {
           onClick={() => setInput('Hello "World"\nNew line\tTabbed')}>
           Example
         </Button>
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Kbd>⌘K</Kbd> clear
+        </span>
       </div>
 
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <Textarea
-          placeholder="Input text..."
+          placeholder="Input text… or drop a file"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="h-full resize-none font-mono text-xs"
+          className={cn("h-full resize-none font-mono text-xs transition-all duration-150",
+            isDragging && "ring-2 ring-primary/50 bg-primary/5")}
+          {...dropProps}
         />
         <div className="relative">
           <Textarea
@@ -58,12 +74,7 @@ export function BackslashTool() {
             placeholder="Output will appear here..."
             className="h-full resize-none font-mono text-xs"
           />
-          {output && (
-            <Button size="icon" variant="ghost" className="absolute right-2 top-2 h-6 w-6"
-              onClick={() => copyToClipboard(output)}>
-              <Copy className="h-3 w-3" />
-            </Button>
-          )}
+          {output && <CopyButton text={output} className="absolute right-2 top-2" />}
         </div>
       </div>
     </div>
