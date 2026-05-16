@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Copy, Plus, Trash2, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 
 const CHARSET = {
   uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -91,7 +92,7 @@ export function RandomStringTool() {
       <div className="flex gap-2">
         <Button size="sm" onClick={generate} disabled={!charset}>Generate</Button>
         {results.length > 1 && (
-          <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(results.join("\n"))}>
+          <Button size="sm" variant="outline" onClick={() => copyToClipboard(results.join("\n"))}>
             <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
           </Button>
         )}
@@ -107,7 +108,7 @@ export function RandomStringTool() {
           <div key={i} className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted">
             <span className="font-mono text-sm flex-1 break-all select-all">{s}</span>
             <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100"
-              onClick={() => navigator.clipboard.writeText(s)}>
+              onClick={() => copyToClipboard(s)}>
               <Copy className="h-3 w-3" />
             </Button>
           </div>

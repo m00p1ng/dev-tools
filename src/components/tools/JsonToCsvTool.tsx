@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "@/components/ui/code-block";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { RotateCcw } from "lucide-react";
 import Papa from "papaparse";
@@ -42,7 +41,12 @@ export function JsonToCsvTool() {
           onChange={(e) => setInput(e.target.value)}
           className="h-full resize-none font-mono text-xs"
         />
-        <CodeBlock code={output} language="csv" placeholder="CSV output..." />
+        <Textarea
+          readOnly
+          value={output}
+          placeholder="CSV output..."
+          className="h-full resize-none font-mono text-xs"
+        />
       </div>
     </div>
   );

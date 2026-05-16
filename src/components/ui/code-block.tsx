@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { copyToClipboard } from "@/lib/copy";
 
 interface CodeBlockProps {
   code: string;
@@ -12,7 +13,7 @@ interface CodeBlockProps {
 export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
   if (!code) {
     return (
-      <div className="h-full rounded-md border border-input bg-background px-3 py-2 text-xs text-muted-foreground font-mono">
+      <div className="h-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground font-mono">
         {placeholder}
       </div>
     );
@@ -24,7 +25,7 @@ export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
         size="icon"
         variant="ghost"
         className="absolute right-2 top-2 z-10 h-6 w-6"
-        onClick={() => navigator.clipboard.writeText(code)}
+        onClick={() => copyToClipboard(code)}
       >
         <Copy className="h-3 w-3" />
       </Button>
@@ -35,10 +36,11 @@ export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
           margin: 0,
           padding: "0.5rem 0.75rem",
           background: "transparent",
-          fontSize: "0.75rem",
+          fontSize: "0.875rem",
           lineHeight: "1.5",
           minHeight: "100%",
         }}
+        wrapLongLines
         codeTagProps={{ style: { fontFamily: "inherit" } }}
       >
         {code}

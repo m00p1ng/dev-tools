@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { jwtDecode } from "jwt-decode";
 import { Copy, Check, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 
 // ---- helpers ----
 
@@ -90,7 +91,7 @@ interface JwtParts {
 function useCopy() {
   const [copied, setCopied] = useState(false);
   const copy = useCallback((text: string) => {
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }, []);

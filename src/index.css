@@ -1,4 +1,18 @@
 @import "tailwindcss";
+
+/* Prism token colors — light */
+.token.keyword  { color: #7c3aed; }
+.token.operator { color: #0891b2; }
+.token.string   { color: #16a34a; }
+.token.comment  { color: #94a3b8; font-style: italic; }
+.token.number   { color: #b45309; }
+
+/* Prism token colors — dark */
+.dark .token.keyword  { color: #a78bfa; }
+.dark .token.operator { color: #22d3ee; }
+.dark .token.string   { color: #4ade80; }
+.dark .token.comment  { color: #64748b; font-style: italic; }
+.dark .token.number   { color: #fbbf24; }
 @import "tw-animate-css";
 
 ::view-transition-old(root) {

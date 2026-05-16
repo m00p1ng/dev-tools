@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Download, Upload, Copy, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
 
@@ -149,7 +150,7 @@ export function QrCodeTool() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Decoded content</p>
-                <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(readResult)}>
+                <Button size="sm" variant="outline" onClick={() => copyToClipboard(readResult)}>
                   <Copy className="h-3.5 w-3.5 mr-1" /> Copy
                 </Button>
               </div>

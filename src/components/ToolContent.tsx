@@ -14,7 +14,7 @@ import { JsonToCsvTool } from "./tools/JsonToCsvTool";
 import { CsvToJsonTool } from "./tools/CsvToJsonTool";
 import { LoremIpsumTool } from "./tools/LoremIpsumTool";
 import { HashTool } from "./tools/HashTool";
-import { MarkdownTool } from "./tools/MarkdownTool";
+import { MermaidTool } from "./tools/MermaidTool";
 import { CronTool } from "./tools/CronTool";
 import { RandomStringTool } from "./tools/RandomStringTool";
 import { QrCodeTool } from "./tools/QrCodeTool";
@@ -34,7 +34,7 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "csv-to-json": CsvToJsonTool,
   "lorem-ipsum": LoremIpsumTool,
   "hash": HashTool,
-  "markdown": MarkdownTool,
+  "mermaid": MermaidTool,
   "cron": CronTool,
   "random-string": RandomStringTool,
   "qrcode": QrCodeTool,

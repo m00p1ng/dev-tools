@@ -22,7 +22,7 @@ export const TOOLS: Tool[] = [
   { id: "json-to-csv", label: "JSON to CSV", description: "Convert JSON arrays to CSV", icon: "Table", color: "text-green-500" },
   { id: "csv-to-json", label: "CSV to JSON", description: "Convert CSV to JSON arrays", icon: "TableProperties", color: "text-emerald-500" },
   { id: "hash", label: "Hash Generator", description: "Generate MD5, SHA-1, SHA-256, SHA-512 hashes", icon: "Hash", color: "text-red-500" },
-  { id: "markdown", label: "Markdown Preview", description: "Preview Markdown with syntax highlighting", icon: "FileText", color: "text-sky-500" },
+  { id: "mermaid", label: "Mermaid Diagram", description: "Render Mermaid diagrams from text", icon: "GitFork", color: "text-sky-500" },
   { id: "cron", label: "Cron Parser", description: "Parse and explain cron expressions", icon: "Timer", color: "text-fuchsia-500" },
   { id: "random-string", label: "Random String Generator", description: "Generate random strings with custom options", icon: "Shuffle", color: "text-slate-400" },
 ];

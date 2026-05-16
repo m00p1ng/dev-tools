@@ -5,22 +5,28 @@ import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { RotateCcw } from "lucide-react";
+import { jsonrepair } from "jsonrepair";
 
-type Mode = "format" | "minify" | "validate";
+type Mode = "format" | "minify";
 
 export function JsonFormatTool() {
   const [input, setInput] = useLocalStorage("tool:json-format", "");
   const [mode, setMode] = useState<Mode>("format");
 
-  const { output, error } = useMemo(() => {
-    if (!input) return { output: "", error: "" };
+  const { output, error, repaired } = useMemo(() => {
+    if (!input) return { output: "", error: "", repaired: false };
     try {
       const parsed = JSON.parse(input);
-      if (mode === "format") return { output: JSON.stringify(parsed, null, 2), error: "" };
-      if (mode === "minify") return { output: JSON.stringify(parsed), error: "" };
-      return { output: "✓ Valid JSON", error: "" };
+      if (mode === "minify") return { output: JSON.stringify(parsed), error: "", repaired: false };
+      return { output: JSON.stringify(parsed, null, 2), error: "", repaired: false };
     } catch (e) {
-      return { output: "", error: e instanceof Error ? e.message : "Invalid JSON" };
+      try {
+        const fixed = JSON.parse(jsonrepair(input));
+        if (mode === "minify") return { output: JSON.stringify(fixed), error: "", repaired: true };
+        return { output: JSON.stringify(fixed, null, 2), error: "", repaired: true };
+      } catch {
+        return { output: "", error: e instanceof Error ? e.message : "Invalid JSON", repaired: false };
+      }
     }
   }, [input, mode]);
 
@@ -29,7 +35,6 @@ export function JsonFormatTool() {
       <div className="flex gap-2">
         <Button size="sm" variant={mode === "format" ? "default" : "outline"} onClick={() => setMode("format")}>Format</Button>
         <Button size="sm" variant={mode === "minify" ? "default" : "outline"} onClick={() => setMode("minify")}>Minify</Button>
-        <Button size="sm" variant={mode === "validate" ? "default" : "outline"} onClick={() => setMode("validate")}>Validate</Button>
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
@@ -40,6 +45,7 @@ export function JsonFormatTool() {
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
+      {repaired && <Badge variant="outline" className="self-start text-xs text-yellow-600 border-yellow-400">Auto-repaired</Badge>}
 
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <Textarea

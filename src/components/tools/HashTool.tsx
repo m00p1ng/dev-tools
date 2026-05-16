@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Copy, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 import CryptoJS from "crypto-js";
 
 const ALGOS = ["MD5", "SHA-1", "SHA-256", "SHA-512"] as const;
@@ -64,7 +65,7 @@ export function HashTool() {
               <Badge variant="outline" className="text-xs">{algo}</Badge>
               {input && (
                 <Button size="icon" variant="ghost" className="h-6 w-6"
-                  onClick={() => navigator.clipboard.writeText(results[algo])}>
+                  onClick={() => copyToClipboard(results[algo])}>
                   <Copy className="h-3 w-3" />
                 </Button>
               )}

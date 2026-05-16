@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Copy, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 
 type Mode = "escape" | "unescape";
 
@@ -59,7 +60,7 @@ export function BackslashTool() {
           />
           {output && (
             <Button size="icon" variant="ghost" className="absolute right-2 top-2 h-6 w-6"
-              onClick={() => navigator.clipboard.writeText(output)}>
+              onClick={() => copyToClipboard(output)}>
               <Copy className="h-3 w-3" />
             </Button>
           )}

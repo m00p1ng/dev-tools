@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
@@ -59,12 +59,13 @@ export function UrlParserTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex gap-2 items-center">
-        <Input
+      <div className="flex gap-2 items-start">
+        <Textarea
           placeholder="https://example.com/path?foo=bar&baz=qux#section"
           value={input}
           onChange={(e) => parse(e.target.value)}
-          className="font-mono text-xs"
+          rows={3}
+          className="font-mono text-xs resize-none"
         />
         <Button size="sm" variant="ghost" className="shrink-0" onClick={() => parse("")}>
           <RotateCcw className="h-3.5 w-3.5" />

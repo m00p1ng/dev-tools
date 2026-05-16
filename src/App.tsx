@@ -1,20 +1,24 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Toaster } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToolContent } from "@/components/ToolContent";
 import { TOOLS } from "@/tools";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function App() {
   const [activeTool, setActiveTool] = useState(TOOLS[0].id);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { theme } = useTheme();
 
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <Toaster position="bottom-right" theme={theme} />
       <AnimatePresence initial={false}>
         {sidebarOpen && (
           <motion.div

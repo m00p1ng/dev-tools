@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
 import { Copy, Plus, Trash2, RotateCcw } from "lucide-react";
+import { copyToClipboard } from "@/lib/copy";
 
 type UuidVersion = "v1" | "v4" | "v7";
 
@@ -23,7 +24,7 @@ export function UuidTool() {
   }
 
   function copyAll() {
-    navigator.clipboard.writeText(uuids.join("\n"));
+    copyToClipboard(uuids.join("\n"));
   }
 
   return (
@@ -83,7 +84,7 @@ export function UuidTool() {
               size="icon"
               variant="ghost"
               className="h-6 w-6 opacity-0 group-hover:opacity-100"
-              onClick={() => navigator.clipboard.writeText(id)}
+              onClick={() => copyToClipboard(id)}
             >
               <Copy className="h-3 w-3" />
             </Button>
