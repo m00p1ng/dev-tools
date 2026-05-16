@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { PlaceholderTool } from "@/components/tools/PlaceholderTool";
+import { ToolContent } from "@/components/ToolContent";
 import { TOOLS } from "@/tools";
 
 export default function App() {
@@ -20,7 +20,7 @@ export default function App() {
         </header>
 
         <main className="flex-1 overflow-auto p-4">
-          <PlaceholderTool label={tool.label} />
+          <ToolContent toolId={activeTool} />
         </main>
       </div>
     </div>
