@@ -26,35 +26,39 @@ export function JsonToCsvTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-          onClick={() => setInput('[{"name":"Alice","age":30},{"name":"Bob","age":25}]')}>
-          Example
-        </Button>
-      </div>
-
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
-        <Textarea
-          placeholder={'[\n  {"name": "Alice", "age": 30},\n  {"name": "Bob", "age": 25}\n]'}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className={cn("h-full resize-none font-mono text-xs transition-all duration-150",
-            isDragging && "ring-2 ring-primary/50 bg-primary/5")}
-          {...dropProps}
-        />
-        <div className="relative">
+        <div className="flex flex-col gap-1 min-h-0">
+          <div className="flex items-center justify-between">
+            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+              onClick={() => setInput('[{"name":"Alice","age":30},{"name":"Bob","age":25}]')}>
+              Example
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          </div>
           <Textarea
-            readOnly
-            value={output}
-            placeholder="CSV output..."
-            className="h-full resize-none font-mono text-xs"
+            placeholder={'[\n  {"name": "Alice", "age": 30},\n  {"name": "Bob", "age": 25}\n]'}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
+              isDragging && "ring-2 ring-primary/50 bg-primary/5")}
+            {...dropProps}
           />
-          {output && <CopyButton text={output} className="absolute right-2 top-2" />}
+        </div>
+        <div className="flex flex-col gap-1 min-h-0">
+          <div className="hidden lg:block h-8 shrink-0" />
+          <div className="relative flex-1 min-h-0">
+            <Textarea
+              readOnly
+              value={output}
+              placeholder="CSV output..."
+              className="h-full resize-none font-mono text-xs"
+            />
+            {output && <CopyButton text={output} className="absolute right-2 top-2" />}
+          </div>
         </div>
       </div>
     </div>

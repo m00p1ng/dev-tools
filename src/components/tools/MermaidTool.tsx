@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RotateCcw, Download, Info, ZoomIn, ZoomOut } from "lucide-react";
 import { CopyButton } from "@/components/ui/copy-button";
-import { useTheme } from "@/hooks/useTheme";
 import mermaid from "mermaid";
 import Editor from "react-simple-code-editor";
 import Prism from "prismjs";
@@ -94,8 +93,15 @@ export function MermaidTool() {
 
   const [error, setError] = useState("");
   const idRef = useRef(0);
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
   const [zoom, setZoom] = useState(1);
   const clampZoom = (z: number) => Math.min(4, Math.max(0.25, z));
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -140,106 +146,113 @@ export function MermaidTool() {
   }, [input, isDark]);
 
   return (
-    <div className="flex h-full flex-col gap-2 min-h-0">
-      <div className="flex gap-2">
-        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => setInput(EXAMPLE)}>
-          Example
-        </Button>
-        <a
-          href="https://mermaid.js.org/syntax/flowchart.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Info className="h-3.5 w-3.5" />
-          Syntax
-        </a>
-      </div>
+    <div className="flex h-full flex-col gap-3">
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
-        <div className="relative h-full overflow-auto rounded-md border border-input bg-background text-xs">
-          {input && <CopyButton text={input} className="absolute right-2 top-2 z-10" />}
-          <Editor
-            value={input}
-            onValueChange={setInput}
-            highlight={(code) => Prism.highlight(code, Prism.languages.mermaid, "mermaid")}
-            padding={10}
-            style={{
-              fontFamily: "ui-monospace, monospace",
-              fontSize: "0.875rem",
-              minHeight: "100%",
-              background: "transparent",
-              color: isDark ? "#e2e8f0" : "#1e293b",
-            }}
-            textareaClassName="outline-none"
-            spellCheck={false}
-          />
-        </div>
-        <div
-          className="relative overflow-hidden rounded-md border border-border flex items-center justify-center"
-          style={{ cursor: isDragging ? "grabbing" : "grab" }}
-          onWheel={(e) => { e.preventDefault(); setZoom(z => clampZoom(z - e.deltaY * 0.001)); }}
-          onMouseDown={(e) => {
-            if (e.button !== 0) return;
-            setIsDragging(true);
-            dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y };
-          }}
-          onMouseMove={(e) => {
-            if (!dragging.current) return;
-            setPan({ x: dragging.current.panX + e.clientX - dragging.current.startX, y: dragging.current.panY + e.clientY - dragging.current.startY });
-          }}
-          onMouseUp={() => { setIsDragging(false); dragging.current = null; }}
-          onMouseLeave={() => { setIsDragging(false); dragging.current = null; }}
-        >
-          {svg && (
-            <div className="absolute right-2 top-2 z-10 flex gap-1">
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
-                <ZoomIn className="h-3 w-3" />
+        <div className="flex flex-col gap-1 min-h-0">
+          <div className="flex items-center justify-between">
+            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => setInput(EXAMPLE)}>
+              Example
+            </Button>
+            <div className="flex items-center gap-1">
+              <a
+                href="https://mermaid.js.org/syntax/flowchart.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Info className="h-3.5 w-3.5" />
+                Syntax
+              </a>
+              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+                <RotateCcw className="h-3.5 w-3.5" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
-                <ZoomOut className="h-3 w-3" />
-              </Button>
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
-                <RotateCcw className="h-3 w-3" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-6 w-6">
-                    <span className="text-[10px] font-mono">{Math.round(zoom * 100)}%</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {[50, 100, 125, 150, 200, 300, 400].map((p) => (
-                    <DropdownMenuItem key={p} onClick={() => setZoom(p / 100)}>
-                      {p}%
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-6 w-6">
-                    <Download className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => download(svg, "png")}>PNG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => download(svg, "jpg")}>JPG</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => download(svg, "svg")}>SVG</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
-          )}
-          {svg
-            ? <div
-              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center", transition: isDragging ? "none" : "transform 0.1s" }}
-              dangerouslySetInnerHTML={{ __html: svg }}
+          </div>
+          <div className="relative flex-1 overflow-auto rounded-md border border-input bg-background text-xs">
+            {input && <CopyButton text={input} className="absolute right-2 top-2 z-10" />}
+            <Editor
+              value={input}
+              onValueChange={setInput}
+              highlight={(code) => Prism.highlight(code, Prism.languages.mermaid, "mermaid")}
+              padding={10}
+              style={{
+                fontFamily: "ui-monospace, monospace",
+                fontSize: "0.875rem",
+                minHeight: "100%",
+                background: "transparent",
+                color: isDark ? "#e2e8f0" : "#1e293b",
+              }}
+              textareaClassName="outline-none"
+              spellCheck={false}
             />
-            : !error && <p className="text-xs text-muted-foreground">Diagram will appear here...</p>
-          }
+          </div>
+        </div>
+        <div className="flex flex-col gap-1 min-h-0">
+          <div className="hidden lg:block h-8 shrink-0" />
+          <div
+            className="relative flex-1 overflow-hidden rounded-md border border-border flex items-center justify-center"
+            style={{ cursor: isDragging ? "grabbing" : "grab" }}
+            onWheel={(e) => { e.preventDefault(); setZoom(z => clampZoom(z - e.deltaY * 0.001)); }}
+            onMouseDown={(e) => {
+              if (e.button !== 0) return;
+              setIsDragging(true);
+              dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y };
+            }}
+            onMouseMove={(e) => {
+              if (!dragging.current) return;
+              setPan({ x: dragging.current.panX + e.clientX - dragging.current.startX, y: dragging.current.panY + e.clientY - dragging.current.startY });
+            }}
+            onMouseUp={() => { setIsDragging(false); dragging.current = null; }}
+            onMouseLeave={() => { setIsDragging(false); dragging.current = null; }}
+          >
+            {svg && (
+              <div className="absolute right-2 top-2 z-10 flex gap-1">
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
+                  <ZoomIn className="h-3 w-3" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
+                  <ZoomOut className="h-3 w-3" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                      <span className="text-[10px] font-mono">{Math.round(zoom * 100)}%</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {[50, 100, 125, 150, 200, 300, 400].map((p) => (
+                      <DropdownMenuItem key={p} onClick={() => setZoom(p / 100)}>
+                        {p}%
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                      <Download className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => download(svg, "png")}>PNG</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => download(svg, "jpg")}>JPG</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => download(svg, "svg")}>SVG</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+            {svg
+              ? <div
+                style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center", transition: isDragging ? "none" : "transform 0.1s" }}
+                dangerouslySetInnerHTML={{ __html: svg }}
+              />
+              : !error && <p className="text-xs text-muted-foreground">Diagram will appear here...</p>
+            }
+          </div>
         </div>
       </div>
     </div>

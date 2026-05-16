@@ -45,56 +45,63 @@ export function HashTool() {
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1">
-          {(["hex", "base64"] as const).map((enc) => (
-            <Button key={enc} size="sm" variant={encoding === enc ? "default" : "outline"}
-              onClick={() => setEncoding(enc)}>
-              {enc}
-            </Button>
-          ))}
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
+        <div className="flex flex-col gap-2 min-h-0">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1">
+              {(["hex", "base64"] as const).map((enc) => (
+                <Button key={enc} size="sm" variant={encoding === enc ? "default" : "outline"}
+                  onClick={() => setEncoding(enc)}>
+                  {enc}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+                onClick={() => setInput("Hello, World!")}>
+                Example
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          <Textarea
+            placeholder="Enter text to hash… or drop a file"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
+              isDragging && "ring-2 ring-primary/50 bg-primary/5")}
+            {...dropProps}
+          />
         </div>
-        <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-          onClick={() => setInput("Hello, World!")}>
-          Example
-        </Button>
-      </div>
-
-      <Textarea
-        placeholder="Enter text to hash… or drop a file"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        className={cn("resize-none font-mono text-xs h-24 transition-all duration-150",
-          isDragging && "ring-2 ring-primary/50 bg-primary/5")}
-        {...dropProps}
-      />
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={encoding + (input ? "data" : "empty")}
-          className="flex-1 overflow-auto space-y-2"
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {ALGOS.map((algo) => (
-            <motion.div key={algo} variants={itemVariants}>
-              <div className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
-                <div className="flex items-center justify-between mb-1">
-                  <Badge variant="outline" className="text-xs">{algo}</Badge>
-                  {input && <CopyButton text={results[algo]} />}
-                </div>
-                <p className="font-mono text-sm break-all text-muted-foreground">
-                  {input ? results[algo] : "—"}
-                </p>
-              </div>
+        <div className="flex flex-col gap-2 min-h-0">
+          <div className="hidden lg:block h-8 shrink-0" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={encoding + (input ? "data" : "empty")}
+              className="flex-1 overflow-auto space-y-2"
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {ALGOS.map((algo) => (
+                <motion.div key={algo} variants={itemVariants}>
+                  <div className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between mb-1">
+                      <Badge variant="outline" className="text-xs">{algo}</Badge>
+                      {input && <CopyButton text={results[algo]} />}
+                    </div>
+                    <p className="font-mono text-sm break-all text-muted-foreground">
+                      {input ? results[algo] : "—"}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 }

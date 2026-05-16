@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -11,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 interface ParsedUrl {
   protocol: string;
+  username: string;
+  password: string;
   host: string;
   hostname: string;
   port: string;
@@ -26,67 +27,165 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 350, damping: 28 } },
 };
 
+const paramColors = [
+  "text-rose-500 dark:text-rose-400",
+  "text-amber-500 dark:text-amber-400",
+  "text-emerald-500 dark:text-emerald-400",
+  "text-cyan-500 dark:text-cyan-400",
+  "text-violet-500 dark:text-violet-400",
+];
+
+function buildHighlight(raw: string): React.ReactNode {
+  try {
+    const u = new URL(raw.trim());
+    const muted = "text-muted-foreground";
+    const nodes: React.ReactNode[] = [];
+
+    nodes.push(<span key="proto" className="text-blue-500 dark:text-blue-400">{u.protocol}</span>);
+    nodes.push(<span key="slashes" className={muted}>//</span>);
+
+    if (u.username) {
+      nodes.push(<span key="user" className="text-orange-500 dark:text-orange-400">{u.username}</span>);
+      if (u.password) {
+        nodes.push(<span key="colon-pass" className={muted}>:</span>);
+        nodes.push(<span key="pass" className="text-orange-400 dark:text-orange-300">{u.password}</span>);
+      }
+      nodes.push(<span key="at" className={muted}>@</span>);
+    }
+
+    nodes.push(<span key="hostname" className="text-green-500 dark:text-green-400">{u.hostname}</span>);
+
+    if (u.port) {
+      nodes.push(<span key="colon-port" className={muted}>:</span>);
+      nodes.push(<span key="port" className="text-yellow-500 dark:text-yellow-400">{u.port}</span>);
+    }
+
+    if (u.pathname === "/") {
+      nodes.push(<span key="slash" className={muted}>/</span>);
+    } else if (u.pathname) {
+      nodes.push(<span key="path" className="text-purple-500 dark:text-purple-400">{u.pathname}</span>);
+    }
+
+    if (u.search) {
+      nodes.push(<span key="q" className={muted}>?</span>);
+      u.search.slice(1).split("&").forEach((pair, i) => {
+        if (i > 0) nodes.push(<span key={`amp-${i}`} className={muted}>&</span>);
+        const [k, ...rest] = pair.split("=");
+        const v = rest.join("=");
+        const color = paramColors[i % paramColors.length];
+        nodes.push(<span key={`pk-${i}`} className={color}>{k}</span>);
+        if (v !== undefined) {
+          nodes.push(<span key={`peq-${i}`} className={muted}>=</span>);
+          nodes.push(<span key={`pv-${i}`} className={cn(color, "opacity-75")}>{v}</span>);
+        }
+      });
+    }
+
+    if (u.hash) {
+      nodes.push(<span key="hash-sym" className={muted}>#</span>);
+      nodes.push(<span key="hash" className="text-teal-500 dark:text-teal-400">{u.hash.slice(1)}</span>);
+    }
+
+    return nodes;
+  } catch {
+    return <span className="text-foreground">{raw}</span>;
+  }
+}
+
 export function UrlParserTool() {
   const [input, setInput] = useLocalStorage("tool:url-parser", "");
-  const [parsed, setParsed] = useState<ParsedUrl | null>(null);
-  const [error, setError] = useState("");
-  const { isDragging, dropProps } = useDropText((text) => parse(text.trim()));
+  const { isDragging, dropProps } = useDropText((text) => setInput(text.trim()));
 
-  function parse(val: string) {
-    setInput(val);
+  const { parsed, error } = useMemo<{ parsed: ParsedUrl | null; error: string }>(() => {
+    if (!input) return { parsed: null, error: "" };
     try {
-      const u = new URL(val);
+      const u = new URL(input);
       const params: [string, string][] = [];
       u.searchParams.forEach((v, k) => params.push([k, v]));
-      setParsed({
-        protocol: u.protocol,
-        host: u.host,
-        hostname: u.hostname,
-        port: u.port,
-        pathname: u.pathname,
-        search: u.search,
-        hash: u.hash,
-        params,
-      });
-      setError("");
+      return {
+        parsed: {
+          protocol: u.protocol,
+          username: u.username,
+          password: u.password,
+          host: u.host,
+          hostname: u.hostname,
+          port: u.port,
+          pathname: u.pathname,
+          search: u.search,
+          hash: u.hash,
+          params,
+        },
+        error: "",
+      };
     } catch {
-      setParsed(null);
-      if (val) setError("Invalid URL");
-      else setError("");
+      return { parsed: null, error: "Invalid URL" };
     }
-  }
+  }, [input]);
 
-  const rows: [string, string][] = parsed
+  const rows: [string, React.ReactNode, string, string][] = parsed
     ? [
-        ["Protocol", parsed.protocol],
-        ["Host", parsed.host],
-        ["Hostname", parsed.hostname],
-        ["Port", parsed.port || "(default)"],
-        ["Path", parsed.pathname],
-        ["Query", parsed.search || "(none)"],
-        ["Hash", parsed.hash || "(none)"],
+        ["Protocol", parsed.protocol, "text-blue-500 dark:text-blue-400", parsed.protocol],
+        ...(parsed.username ? [["Username", parsed.username, "text-orange-500 dark:text-orange-400", parsed.username] as [string, React.ReactNode, string, string]] : []),
+        ...(parsed.password ? [["Password", parsed.password, "text-orange-400 dark:text-orange-300", parsed.password] as [string, React.ReactNode, string, string]] : []),
+        ["Host",
+          parsed.port
+            ? <><span className="text-green-500 dark:text-green-400">{parsed.hostname}</span><span className="text-muted-foreground">:</span><span className="text-yellow-500 dark:text-yellow-400">{parsed.port}</span></>
+            : parsed.host,
+          parsed.port ? "" : "text-green-500 dark:text-green-400",
+          parsed.host],
+        ["Hostname", parsed.hostname, "text-green-500 dark:text-green-400", parsed.hostname],
+        ["Port", parsed.port || "(default)", "text-yellow-500 dark:text-yellow-400", parsed.port || "(default)"],
+        ["Path", parsed.pathname, "text-purple-500 dark:text-purple-400", parsed.pathname],
+        ["Query", parsed.search
+          ? <><span className="text-muted-foreground">?</span>{parsed.search.slice(1).split("&").map((pair, i) => {
+              const [k, ...rest] = pair.split("=");
+              const v = rest.join("=");
+              const color = paramColors[i % paramColors.length];
+              return <React.Fragment key={i}>
+                {i > 0 && <span className="text-muted-foreground">&</span>}
+                <span className={color}>{k}</span>
+                {v !== undefined && <><span className="text-muted-foreground">=</span><span className={cn(color, "opacity-75")}>{v}</span></>}
+              </React.Fragment>;
+            })}</>
+          : "(none)", "", parsed.search || "(none)"],
+        ["Hash", parsed.hash
+          ? <><span className="text-muted-foreground">#</span><span className="text-teal-500 dark:text-teal-400">{parsed.hash.slice(1)}</span></>
+          : "(none)", "", parsed.hash || "(none)"],
       ]
     : [];
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex gap-2 items-start">
-        <Textarea
-          placeholder="https://example.com/path?foo=bar&baz=qux#section"
-          value={input}
-          onChange={(e) => parse(e.target.value)}
-          rows={3}
-          className={cn("font-mono text-xs resize-none transition-all duration-150",
-            isDragging && "ring-2 ring-primary/50 bg-primary/5")}
-          {...dropProps}
-        />
-        <Button size="sm" variant="ghost" className="shrink-0" onClick={() => parse("")}>
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground shrink-0"
-          onClick={() => parse("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}>
-          Example
-        </Button>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+            onClick={() => setInput("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}>
+            Example
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+        <div className="relative">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 overflow-hidden rounded-md border border-transparent px-3 py-2 font-mono text-sm leading-6 whitespace-pre-wrap [overflow-wrap:anywhere]"
+          >
+            {input ? buildHighlight(input) : null}
+          </div>
+          <textarea
+            placeholder="https://example.com/path?foo=bar&baz=qux#section"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className={cn(
+              "relative w-full min-h-[7.5rem] resize-none rounded-md border border-input bg-transparent px-3 py-2 font-mono text-sm leading-6 shadow-xs outline-none transition-[color,box-shadow] duration-150 [overflow-wrap:anywhere]",
+              "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              input ? "text-transparent caret-foreground" : "text-foreground",
+              isDragging && "ring-2 ring-primary/50 bg-primary/5"
+            )}
+            {...dropProps}
+          />
+        </div>
       </div>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
@@ -99,12 +198,12 @@ export function UrlParserTool() {
             animate="visible"
           >
             <tbody>
-              {rows.map(([label, value]) => (
+              {rows.map(([label, value, color, copyText]) => (
                 <motion.tr key={label} variants={itemVariants} className="group border-b border-border">
                   <td className="py-2 pr-4 font-medium text-muted-foreground w-24">{label}</td>
-                  <td className="py-2 font-mono text-xs break-all flex-1">{value}</td>
+                  <td className={cn("py-2 font-mono text-sm break-all flex-1", color)}>{value}</td>
                   <td className="py-2 w-8">
-                    <CopyButton text={value} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <CopyButton text={copyText} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </td>
                 </motion.tr>
               ))}
@@ -128,15 +227,18 @@ export function UrlParserTool() {
                   </tr>
                 </thead>
                 <tbody>
-                  {parsed.params.map(([k, v]) => (
+                  {parsed.params.map(([k, v], i) => {
+                    const color = paramColors[i % paramColors.length];
+                    return (
                     <motion.tr key={k} variants={itemVariants} className="group border-b border-border">
-                      <td className="py-1.5 pr-4 font-mono text-xs">{k}</td>
-                      <td className="py-1.5 font-mono text-xs break-all">{v}</td>
+                      <td className={cn("py-1.5 pr-4 font-mono text-sm", color)}>{k}</td>
+                      <td className={cn("py-1.5 font-mono text-sm break-all opacity-75", color)}>{v}</td>
                       <td className="py-1.5">
                         <CopyButton text={v} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                       </td>
                     </motion.tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </motion.table>
             </div>
