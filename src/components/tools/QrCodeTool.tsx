@@ -9,10 +9,19 @@ import QRCode from "qrcode";
 import jsQR from "jsqr";
 
 type Tab = "generate" | "read";
+type ECLevel = "L" | "M" | "Q" | "H";
+
+const EC_LEVELS: { value: ECLevel; label: string }[] = [
+  { value: "L", label: "Low (7%)" },
+  { value: "M", label: "Medium (15%)" },
+  { value: "Q", label: "Quartile (25%)" },
+  { value: "H", label: "High (30%)" },
+];
 
 export function QrCodeTool() {
   const [tab, setTab] = useState<Tab>("generate");
   const [input, setInput] = useLocalStorage("tool:qrcode-gen", "");
+  const [ecLevel, setEcLevel] = useLocalStorage<ECLevel>("tool:qrcode-ec", "H");
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [genError, setGenError] = useState("");
   const [readResult, setReadResult] = useState("");
@@ -27,7 +36,7 @@ export function QrCodeTool() {
         return;
       }
       try {
-        const url = await QRCode.toDataURL(input, { width: 300, margin: 2 });
+        const url = await QRCode.toDataURL(input, { width: 800, margin: 2, errorCorrectionLevel: ecLevel });
         setQrDataUrl(url);
         setGenError("");
       } catch {
@@ -35,7 +44,7 @@ export function QrCodeTool() {
       }
     }, input.trim() ? 300 : 0);
     return () => clearTimeout(timer);
-  }, [input]);
+  }, [input, ecLevel]);
 
   function downloadQr() {
     const a = document.createElement("a");
@@ -81,56 +90,66 @@ export function QrCodeTool() {
     if (file) readFile(file);
   }
 
+  const tabButtons = (["generate", "read"] as Tab[]).map((t) => (
+    <Button key={t} size="sm" variant={tab === t ? "default" : "outline"}
+      onClick={() => setTab(t)} className="capitalize">
+      {t}
+    </Button>
+  ));
+
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex gap-1">
-        {(["generate", "read"] as Tab[]).map((t) => (
-          <Button key={t} size="sm" variant={tab === t ? "default" : "outline"}
-            onClick={() => setTab(t)} className="capitalize">
-            {t}
-          </Button>
-        ))}
-      </div>
-
-      {tab === "generate" && (
-        <div className="flex flex-col lg:flex-row flex-1 gap-4 min-h-0">
-          <div className="flex flex-col gap-2 flex-1">
+      {tab === "generate" ? (
+        <div className="flex flex-col lg:grid lg:grid-cols-2 flex-1 gap-4 min-h-0">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">{tabButtons}</div>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+                <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+                  onClick={() => setInput("https://example.com")}>
+                  Example
+                </Button>
+              </div>
+            </div>
             <Textarea
               placeholder="Text or URL to encode..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1 resize-none font-mono text-xs"
             />
-            <div className="flex gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-                <RotateCcw className="h-3.5 w-3.5" />
-              </Button>
-              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-                onClick={() => setInput("https://example.com")}>
-                Example
-              </Button>
-            </div>
-            <div className="flex gap-2" style={{ opacity: qrDataUrl ? 1 : 0, pointerEvents: qrDataUrl ? "auto" : "none", transition: "opacity 0.2s" }}>
+            {genError && <Badge variant="destructive" className="self-start text-xs">{genError}</Badge>}
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8" />
+            <img
+              src={qrDataUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
+              alt="QR Code"
+              className="rounded border border-border transition-opacity duration-200 w-full max-w-[300px] aspect-square object-contain"
+              style={{ opacity: qrDataUrl ? 1 : 0 }}
+            />
+            <div style={{ opacity: qrDataUrl ? 1 : 0, pointerEvents: qrDataUrl ? "auto" : "none", transition: "opacity 0.2s" }} className="flex flex-col items-center gap-2 w-full">
+              <select
+                value={ecLevel}
+                onChange={(e) => setEcLevel(e.target.value as ECLevel)}
+                className="h-7 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                {EC_LEVELS.map((ec) => (
+                  <option key={ec.value} value={ec.value}>{ec.label}</option>
+                ))}
+              </select>
               <Button size="sm" variant="outline" onClick={downloadQr}>
                 <Download className="h-3.5 w-3.5 mr-1" /> Download
               </Button>
             </div>
-            {genError && <Badge variant="destructive" className="self-start text-xs">{genError}</Badge>}
-          </div>
-
-          <div className="flex flex-col items-center gap-2 shrink-0" style={{ width: 200 }}>
-            <img
-              src={qrDataUrl || "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="}
-              alt="QR Code"
-              className="rounded border border-border transition-opacity duration-200"
-              style={{ width: 200, height: 200, opacity: qrDataUrl ? 1 : 0 }}
-            />
           </div>
         </div>
-      )}
-
-      {tab === "read" && (
+      ) : (
         <div className="flex flex-col gap-3 flex-1">
+          <div className="flex items-center gap-1">{tabButtons}</div>
           <div
             onDrop={handleFileDrop}
             onDragOver={(e) => e.preventDefault()}

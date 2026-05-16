@@ -2,11 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { TOOLS } from "@/tools";
 import * as LucideIcons from "lucide-react";
 import type { LucideProps } from "lucide-react";
-import { Search, Star } from "lucide-react";
+import { Search, Star, Settings, RotateCcw } from "lucide-react";
 
 interface SidebarProps {
   activeTool: string;
@@ -30,6 +31,19 @@ function loadFavorites(): string[] {
 
 function saveFavorites(favs: string[]) {
   localStorage.setItem("favorites", JSON.stringify(favs));
+}
+
+function loadHiddenTools(): string[] {
+  try {
+    const raw = localStorage.getItem("hidden-tools");
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHiddenTools(ids: string[]) {
+  localStorage.setItem("hidden-tools", JSON.stringify(ids));
 }
 
 function ToolButton({
@@ -92,7 +106,10 @@ const itemVariants = {
 export function Sidebar({ activeTool, onSelect }: SidebarProps) {
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
+  const [hiddenTools, setHiddenTools] = useState<string[]>(loadHiddenTools);
+  const [showManage, setShowManage] = useState(false);
   const favSet = new Set(favorites);
+  const hiddenSet = new Set(hiddenTools);
 
   function toggleFav(e: React.MouseEvent, id: string) {
     e.stopPropagation();
@@ -103,12 +120,29 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
     });
   }
 
-  const filtered = TOOLS.filter((t) =>
+  function toggleHidden(id: string) {
+    setHiddenTools((prev) => {
+      const next = prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id];
+      saveHiddenTools(next);
+      return next;
+    });
+  }
+
+  function resetHidden() {
+    setHiddenTools([]);
+    saveHiddenTools([]);
+  }
+
+  const visibleTools = TOOLS.filter((t) => !hiddenSet.has(t.id));
+
+  const filtered = visibleTools.filter((t) =>
     t.label.toLowerCase().includes(query.toLowerCase())
   );
 
   const toolMap = new Map(TOOLS.map((t) => [t.id, t]));
-  const favTools = favorites.map((id) => toolMap.get(id)).filter(Boolean) as (typeof TOOLS)[number][];
+  const favTools = favorites
+    .map((id) => toolMap.get(id))
+    .filter((t) => t && !hiddenSet.has(t.id)) as (typeof TOOLS)[number][];
   const isSearching = query.length > 0;
   const nonFavFiltered = isSearching
     ? filtered
@@ -124,6 +158,14 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
         }, new Map<string, (typeof TOOLS)[number][]>())
       );
 
+  const allGroups = Array.from(
+    TOOLS.reduce((acc, t) => {
+      if (!acc.has(t.group)) acc.set(t.group, []);
+      acc.get(t.group)!.push(t);
+      return acc;
+    }, new Map<string, (typeof TOOLS)[number][]>())
+  );
+
   return (
     <aside className="flex h-screen w-72 flex-shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="px-3 py-2">
@@ -134,74 +176,118 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-8 pl-8 text-xs"
+            disabled={showManage}
           />
         </div>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0">
-        <nav className="px-2 pb-4">
-          <AnimatePresence initial={false}>
-            {!isSearching && favTools.length > 0 && (
-              <motion.div
-                key="favorites-section"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="mb-1 overflow-hidden"
-              >
-                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Favorites
-                </p>
-                <motion.div variants={listVariants} initial="hidden" animate="visible">
-                  {favTools.map((tool) => (
-                    <motion.div key={tool.id} variants={itemVariants}>
-                      <ToolButton
-                        tool={tool}
-                        active={activeTool === tool.id}
-                        isFav
-                        onSelect={() => onSelect(tool.id)}
-                        onToggleFav={(e) => toggleFav(e, tool.id)}
-                      />
+      <AnimatePresence mode="wait" initial={false}>
+        {showManage ? (
+          <motion.div
+            key="manage"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-1 min-h-0 flex-col"
+          >
+            <div className="flex items-center justify-between px-4 pb-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Visible Tools
+              </span>
+              {hiddenTools.length > 0 && (
+                <button
+                  onClick={resetHidden}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RotateCcw className="size-2.5" />
+                  Reset
+                </button>
+              )}
+            </div>
+            <ScrollArea className="flex-1 min-h-0">
+              <div className="px-3 pb-4 space-y-4">
+                {allGroups.map(([group, tools]) => (
+                  <div key={group}>
+                    <p className="px-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {group}
+                    </p>
+                    <div className="space-y-1">
+                      {tools.map((tool) => (
+                        <div
+                          key={tool.id}
+                          className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-sidebar-accent/50"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
+                            <span className="text-xs text-sidebar-foreground truncate">{tool.label}</span>
+                          </div>
+                          <Switch
+                            checked={!hiddenSet.has(tool.id)}
+                            onCheckedChange={() => toggleHidden(tool.id)}
+                            className="shrink-0 ml-2 scale-75"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="tools"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-1 min-h-0 flex-col"
+          >
+            <ScrollArea className="flex-1 min-h-0">
+              <nav className="px-2 pb-4">
+                <AnimatePresence initial={false}>
+                  {!isSearching && favTools.length > 0 && (
+                    <motion.div
+                      key="favorites-section"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="mb-1 overflow-hidden"
+                    >
+                      <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Favorites
+                      </p>
+                      <motion.div variants={listVariants} initial="hidden" animate="visible">
+                        {favTools.map((tool) => (
+                          <motion.div key={tool.id} variants={itemVariants}>
+                            <ToolButton
+                              tool={tool}
+                              active={activeTool === tool.id}
+                              isFav
+                              onSelect={() => onSelect(tool.id)}
+                              onToggleFav={(e) => toggleFav(e, tool.id)}
+                            />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                      <div className="my-2 border-t border-border" />
                     </motion.div>
-                  ))}
-                </motion.div>
-                <div className="my-2 border-t border-border" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  )}
+                </AnimatePresence>
 
-          {nonFavFiltered.length === 0 && (!isSearching ? favTools.length === 0 : true) ? (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="px-2 py-4 text-center text-xs text-muted-foreground"
-            >
-              No tools found
-            </motion.p>
-          ) : isSearching ? (
-            <motion.div variants={listVariants} initial="hidden" animate="visible">
-              {nonFavFiltered.map((tool) => (
-                <motion.div key={tool.id} variants={itemVariants}>
-                  <ToolButton
-                    tool={tool}
-                    active={activeTool === tool.id}
-                    isFav={favSet.has(tool.id)}
-                    onSelect={() => onSelect(tool.id)}
-                    onToggleFav={(e) => toggleFav(e, tool.id)}
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
-          ) : (
-            <>
-              {groups!.map(([group, tools]) => (
-                <div key={group} className="mb-1">
-                  <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {group}
-                  </p>
+                {nonFavFiltered.length === 0 && (!isSearching ? favTools.length === 0 : true) ? (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="px-2 py-4 text-center text-xs text-muted-foreground"
+                  >
+                    No tools found
+                  </motion.p>
+                ) : isSearching ? (
                   <motion.div variants={listVariants} initial="hidden" animate="visible">
-                    {tools.map((tool) => (
+                    {nonFavFiltered.map((tool) => (
                       <motion.div key={tool.id} variants={itemVariants}>
                         <ToolButton
                           tool={tool}
@@ -213,12 +299,55 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                       </motion.div>
                     ))}
                   </motion.div>
-                </div>
-              ))}
-            </>
+                ) : (
+                  <>
+                    {groups!.map(([group, tools]) => (
+                      <div key={group} className="mb-1">
+                        <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {group}
+                        </p>
+                        <motion.div variants={listVariants} initial="hidden" animate="visible">
+                          {tools.map((tool) => (
+                            <motion.div key={tool.id} variants={itemVariants}>
+                              <ToolButton
+                                tool={tool}
+                                active={activeTool === tool.id}
+                                isFav={favSet.has(tool.id)}
+                                onSelect={() => onSelect(tool.id)}
+                                onToggleFav={(e) => toggleFav(e, tool.id)}
+                              />
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </nav>
+            </ScrollArea>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="border-t border-border px-3 py-2">
+        <button
+          onClick={() => setShowManage((v) => !v)}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
+            showManage
+              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+              : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
           )}
-        </nav>
-      </ScrollArea>
+        >
+          <Settings className="size-3.5 shrink-0" />
+          <span>Manage Tools</span>
+          {hiddenTools.length > 0 && !showManage && (
+            <span className="ml-auto rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+              {hiddenTools.length} hidden
+            </span>
+          )}
+        </button>
+      </div>
     </aside>
   );
 }
