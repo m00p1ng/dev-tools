@@ -70,7 +70,7 @@ src/
 | 3 | [x] | Converter Tools (4 tools) |
 | 4 | [x] | Generator & Misc Tools (5 tools) |
 | 5 | [x] | QR Code Reader/Generator |
-| 6 | [ ] | CI & Release Pipeline |
+| 6 | [x] | CI & Release Pipeline |
 
 ---
 
