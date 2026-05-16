@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -45,29 +46,48 @@ function ToolButton({
   onToggleFav: (e: React.MouseEvent) => void;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onSelect}
+      layout
       className={cn(
         "group w-full rounded-md px-3 py-2 text-left text-sm transition-colors flex items-center gap-2.5",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
           : "text-sidebar-foreground hover:bg-sidebar-accent/50"
       )}
+      whileHover={{ x: 2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
       <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
       <span className="flex-1 truncate">{tool.label}</span>
-      <Star
+      <motion.div
         onClick={onToggleFav}
-        className={cn(
-          "size-3 shrink-0 transition-opacity",
-          isFav
-            ? "fill-yellow-400 text-yellow-400 opacity-100"
-            : "opacity-0 group-hover:opacity-60 text-muted-foreground"
-        )}
-      />
-    </button>
+        whileTap={{ scale: 1.5, rotate: 20 }}
+        transition={{ type: "spring", stiffness: 600, damping: 12 }}
+      >
+        <Star
+          className={cn(
+            "size-3 shrink-0 transition-all duration-200",
+            isFav
+              ? "fill-yellow-400 text-yellow-400 opacity-100"
+              : "opacity-0 group-hover:opacity-60 text-muted-foreground"
+          )}
+        />
+      </motion.div>
+    </motion.button>
   );
 }
+
+const listVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.035 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
+};
 
 export function Sidebar({ activeTool, onSelect }: SidebarProps) {
   const [query, setQuery] = useState("");
@@ -110,41 +130,62 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
 
       <ScrollArea className="flex-1 min-h-0">
         <nav className="px-2 pb-4">
-          {!isSearching && favTools.length > 0 && (
-            <div className="mb-1">
-              <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Favorites
-              </p>
-              {favTools.map((tool) => (
-                <ToolButton
-                  key={tool.id}
-                  tool={tool}
-                  active={activeTool === tool.id}
-                  isFav
-                  onSelect={() => onSelect(tool.id)}
-                  onToggleFav={(e) => toggleFav(e, tool.id)}
-                />
-              ))}
-              <div className="my-2 border-t border-border" />
-              <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                All Tools
-              </p>
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {!isSearching && favTools.length > 0 && (
+              <motion.div
+                key="favorites-section"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mb-1 overflow-hidden"
+              >
+                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Favorites
+                </p>
+                <motion.div variants={listVariants} initial="hidden" animate="visible">
+                  {favTools.map((tool) => (
+                    <motion.div key={tool.id} variants={itemVariants}>
+                      <ToolButton
+                        tool={tool}
+                        active={activeTool === tool.id}
+                        isFav
+                        onSelect={() => onSelect(tool.id)}
+                        onToggleFav={(e) => toggleFav(e, tool.id)}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+                <div className="my-2 border-t border-border" />
+                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  All Tools
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {nonFavFiltered.length === 0 && (!isSearching ? favTools.length === 0 : true) ? (
-            <p className="px-2 py-4 text-center text-xs text-muted-foreground">No tools found</p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="px-2 py-4 text-center text-xs text-muted-foreground"
+            >
+              No tools found
+            </motion.p>
           ) : (
-            nonFavFiltered.map((tool) => (
-              <ToolButton
-                key={tool.id}
-                tool={tool}
-                active={activeTool === tool.id}
-                isFav={favSet.has(tool.id)}
-                onSelect={() => onSelect(tool.id)}
-                onToggleFav={(e) => toggleFav(e, tool.id)}
-              />
-            ))
+            <motion.div variants={listVariants} initial="hidden" animate="visible">
+              {nonFavFiltered.map((tool) => (
+                <motion.div key={tool.id} variants={itemVariants}>
+                  <ToolButton
+                    tool={tool}
+                    active={activeTool === tool.id}
+                    isFav={favSet.has(tool.id)}
+                    onSelect={() => onSelect(tool.id)}
+                    onToggleFav={(e) => toggleFav(e, tool.id)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
           )}
         </nav>
       </ScrollArea>

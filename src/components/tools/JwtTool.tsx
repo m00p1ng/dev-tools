@@ -206,32 +206,29 @@ export function JwtTool() {
     }
   }
 
-  async function verify() {
-    if (!parts || !secret) return;
-    const result = await verifyHS256(input, secret, isBase64Secret);
-    setSigVerified(result);
-  }
-
   useEffect(() => {
     if (input) decode(input);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    setSigVerified(null);
-  }, [secret, isBase64Secret, input]);
+    if (!parts || parts.algorithm !== "HS256" || !secret) {
+      setSigVerified(null);
+      return;
+    }
+    verifyHS256(input, secret, isBase64Secret).then(setSigVerified);
+  }, [secret, isBase64Secret, input, parts?.algorithm]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const canVerify = parts?.algorithm === "HS256" && secret.length > 0;
 
   return (
-    <div className="flex h-full gap-4 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-full gap-4 overflow-auto lg:overflow-hidden">
       {/* LEFT: encoded token */}
-      <div className="flex flex-col w-2/5 gap-2 min-h-0">
+      <div className="flex flex-col lg:w-2/5 gap-2 min-h-0">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Encoded Token
         </span>
 
         {/* color overlay textarea */}
-        <div className="relative flex-1 min-h-0 rounded-md border border-border bg-muted/20 overflow-hidden">
+        <div className="relative flex-1 min-h-48 rounded-md border border-border bg-muted/20 overflow-hidden">
           <div className="absolute inset-0 p-3 pointer-events-none overflow-hidden whitespace-pre-wrap">
             {input ? (
               <ColoredToken token={input} />
@@ -310,19 +307,14 @@ export function JwtTool() {
                     <Switch size="sm" checked={isBase64Secret} onCheckedChange={setIsBase64Secret} />
                   </label>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={secret}
-                    onChange={(e) => setSecret(e.target.value)}
-                    placeholder="your-256-bit-secret"
-                    disabled={parts.algorithm !== "HS256"}
-                    className="flex-1 font-mono text-xs bg-muted/30 border border-border rounded px-2 py-1.5 outline-none focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                  <Button size="sm" variant="outline" onClick={verify} disabled={!canVerify}>
-                    Verify
-                  </Button>
-                </div>
+                <input
+                  type="text"
+                  value={secret}
+                  onChange={(e) => setSecret(e.target.value)}
+                  placeholder="your-256-bit-secret"
+                  disabled={parts.algorithm !== "HS256"}
+                  className="w-full font-mono text-xs bg-muted/30 border border-border rounded px-2 py-1.5 outline-none focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                />
               </div>
             </div>
           </>

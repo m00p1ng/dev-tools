@@ -20,6 +20,7 @@
     "cronstrue": "^3.14.0",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.20",
+    "framer-motion": "^12.38.0",
     "js-yaml": "^4.1.1",
     "jsqr": "^1.4.0",
     "jwt-decode": "^4.0.0",
