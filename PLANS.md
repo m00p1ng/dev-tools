@@ -68,7 +68,7 @@ src/
 | 1 | [x] | Project Scaffold & Shell |
 | 2 | [x] | Core Text Tools (8 tools) |
 | 3 | [x] | Converter Tools (4 tools) |
-| 4 | [ ] | Generator & Misc Tools (5 tools) |
+| 4 | [x] | Generator & Misc Tools (5 tools) |
 | 5 | [ ] | QR Code Reader/Generator |
 | 6 | [ ] | CI & Release Pipeline |
 
