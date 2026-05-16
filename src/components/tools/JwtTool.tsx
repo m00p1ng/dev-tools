@@ -111,7 +111,7 @@ function JsonPanel({ data }: { data: object }) {
   const json = JSON.stringify(data, null, 2);
   return (
     <pre
-      className="font-mono text-xs p-3 overflow-auto leading-relaxed"
+      className="font-mono text-sm p-3 overflow-auto leading-relaxed"
       dangerouslySetInnerHTML={{ __html: syntaxHighlight(json) }}
     />
   );
@@ -119,7 +119,7 @@ function JsonPanel({ data }: { data: object }) {
 
 function ClaimsPanel({ data }: { data: Record<string, unknown> }) {
   return (
-    <div className="p-3 space-y-2 font-mono text-xs overflow-auto">
+    <div className="p-3 space-y-2 font-mono text-sm overflow-auto">
       {Object.entries(data).map(([key, val]) => {
         const label = CLAIM_LABELS[key] ?? key;
         const display =
@@ -148,7 +148,7 @@ interface DecodedPanelProps {
   editError?: string;
 }
 
-const OVERLAY_SHARED = "font-mono text-xs p-3 whitespace-pre-wrap break-words leading-[1.5] tracking-normal";
+const OVERLAY_SHARED = "font-mono text-sm p-3 whitespace-pre-wrap break-words leading-[1.5] tracking-normal";
 
 function EditableJsonOverlay({ value, onChange, error }: {
   value: string;
@@ -354,7 +354,7 @@ export function JwtTool() {
 
         {/* color overlay textarea */}
         <div className="relative min-h-48 h-48 lg:h-64 rounded-md border border-border bg-muted/20 overflow-hidden">
-          <div className="absolute inset-0 p-3 font-mono text-xs leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
             {input ? (
               <ColoredToken token={input} />
             ) : (
@@ -364,7 +364,7 @@ export function JwtTool() {
           <textarea
             value={input}
             onChange={(e) => decode(e.target.value)}
-            className="absolute inset-0 w-full h-full p-3 font-mono text-xs leading-[1.5] tracking-normal whitespace-pre-wrap break-all bg-transparent text-transparent caret-foreground resize-none outline-none"
+            className="absolute inset-0 w-full h-full p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all bg-transparent text-transparent caret-foreground resize-none outline-none"
             spellCheck={false}
           />
         </div>

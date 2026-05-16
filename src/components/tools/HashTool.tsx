@@ -70,7 +70,7 @@ export function HashTool() {
                 </Button>
               )}
             </div>
-            <p className="font-mono text-xs break-all text-muted-foreground">
+            <p className="font-mono text-sm break-all text-muted-foreground">
               {input ? results[algo] : "—"}
             </p>
           </div>

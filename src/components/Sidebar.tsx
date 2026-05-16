@@ -114,6 +114,16 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
     ? filtered
     : filtered.filter((t) => !favSet.has(t.id));
 
+  const groups = isSearching
+    ? null
+    : Array.from(
+        nonFavFiltered.reduce((acc, t) => {
+          if (!acc.has(t.group)) acc.set(t.group, []);
+          acc.get(t.group)!.push(t);
+          return acc;
+        }, new Map<string, (typeof TOOLS)[number][]>())
+      );
+
   return (
     <aside className="flex h-screen w-72 flex-shrink-0 flex-col border-r border-border bg-sidebar">
       <div className="px-3 py-2">
@@ -157,9 +167,6 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                   ))}
                 </motion.div>
                 <div className="my-2 border-t border-border" />
-                <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  All Tools
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -172,7 +179,7 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
             >
               No tools found
             </motion.p>
-          ) : (
+          ) : isSearching ? (
             <motion.div variants={listVariants} initial="hidden" animate="visible">
               {nonFavFiltered.map((tool) => (
                 <motion.div key={tool.id} variants={itemVariants}>
@@ -186,6 +193,29 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                 </motion.div>
               ))}
             </motion.div>
+          ) : (
+            <>
+              {groups!.map(([group, tools]) => (
+                <div key={group} className="mb-1">
+                  <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </p>
+                  <motion.div variants={listVariants} initial="hidden" animate="visible">
+                    {tools.map((tool) => (
+                      <motion.div key={tool.id} variants={itemVariants}>
+                        <ToolButton
+                          tool={tool}
+                          active={activeTool === tool.id}
+                          isFav={favSet.has(tool.id)}
+                          onSelect={() => onSelect(tool.id)}
+                          onToggleFav={(e) => toggleFav(e, tool.id)}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              ))}
+            </>
           )}
         </nav>
       </ScrollArea>

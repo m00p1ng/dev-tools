@@ -98,11 +98,18 @@ export function MermaidTool() {
   const [zoom, setZoom] = useState(1);
   const clampZoom = (z: number) => Math.min(4, Math.max(0.25, z));
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default" });
-    if (!input.trim()) { setSvg(""); setError(""); return; }
+    if (!input.trim()) {
+      if (svg !== "" || error !== "") {
+        setSvg("");
+        setError("");
+      }
+      return;
+    }
     const id = `mermaid-${++idRef.current}`;
     mermaid.render(id, input)
       .then(({ svg }) => { setSvg(svg); setError(""); setPan({ x: 0, y: 0 }); })
@@ -159,18 +166,19 @@ export function MermaidTool() {
         </div>
         <div
           className="relative overflow-hidden rounded-md border border-border flex items-center justify-center"
-          style={{ cursor: dragging.current ? "grabbing" : "grab" }}
+          style={{ cursor: isDragging ? "grabbing" : "grab" }}
           onWheel={(e) => { e.preventDefault(); setZoom(z => clampZoom(z - e.deltaY * 0.001)); }}
           onMouseDown={(e) => {
             if (e.button !== 0) return;
+            setIsDragging(true);
             dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y };
           }}
           onMouseMove={(e) => {
             if (!dragging.current) return;
             setPan({ x: dragging.current.panX + e.clientX - dragging.current.startX, y: dragging.current.panY + e.clientY - dragging.current.startY });
           }}
-          onMouseUp={() => { dragging.current = null; }}
-          onMouseLeave={() => { dragging.current = null; }}
+          onMouseUp={() => { setIsDragging(false); dragging.current = null; }}
+          onMouseLeave={() => { setIsDragging(false); dragging.current = null; }}
         >
           {svg && (
             <div className="absolute right-2 top-2 z-10 flex gap-1">
@@ -213,9 +221,9 @@ export function MermaidTool() {
           )}
           {svg
             ? <div
-                style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center", transition: dragging.current ? "none" : "transform 0.1s" }}
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "center", transition: isDragging ? "none" : "transform 0.1s" }}
+              dangerouslySetInnerHTML={{ __html: svg }}
+            />
             : !error && <p className="text-xs text-muted-foreground">Diagram will appear here...</p>
           }
         </div>
