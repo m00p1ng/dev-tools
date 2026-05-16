@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -33,8 +31,6 @@ export function UrlParserTool() {
   const [parsed, setParsed] = useState<ParsedUrl | null>(null);
   const [error, setError] = useState("");
   const { isDragging, dropProps } = useDropText((text) => parse(text.trim()));
-
-  useToolKeys({ onClear: () => parse("") });
 
   function parse(val: string) {
     setInput(val);
@@ -92,12 +88,6 @@ export function UrlParserTool() {
           Example
         </Button>
       </div>
-      <div className="flex items-center justify-end">
-        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear · drop URL file
-        </span>
-      </div>
-
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
       {parsed && (

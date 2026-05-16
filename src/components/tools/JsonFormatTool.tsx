@@ -3,10 +3,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
-import { Kbd } from "@/components/ui/kbd";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { jsonrepair } from "jsonrepair";
@@ -17,8 +15,6 @@ export function JsonFormatTool() {
   const [input, setInput] = useLocalStorage("tool:json-format", "");
   const [mode, setMode] = useState<Mode>("format");
   const { isDragging, dropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const { output, error, repaired } = useMemo(() => {
     if (!input) return { output: "", error: "", repaired: false };
@@ -51,9 +47,6 @@ export function JsonFormatTool() {
           onClick={() => setInput('{"name":"Alice","age":30,"active":true,"address":{"city":"Bangkok"}}')}>
           Example
         </Button>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear
-        </span>
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}

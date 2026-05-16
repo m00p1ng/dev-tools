@@ -3,10 +3,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
-import { Kbd } from "@/components/ui/kbd";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import yaml from "js-yaml";
@@ -14,8 +12,6 @@ import yaml from "js-yaml";
 export function YamlToJsonTool() {
   const [input, setInput] = useLocalStorage("tool:yaml-to-json", "");
   const { isDragging, dropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const { output, error } = useMemo(() => {
     if (!input) return { output: "", error: "" };
@@ -36,9 +32,6 @@ export function YamlToJsonTool() {
           onClick={() => setInput("name: Alice\nage: 30\nhobbies:\n  - reading\n  - coding")}>
           Example
         </Button>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear
-        </span>
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}

@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { RotateCcw } from "lucide-react";
 import { LoremIpsum } from "lorem-ipsum";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { motion, AnimatePresence } from "framer-motion";
 
 const lorem = new LoremIpsum();
@@ -29,8 +27,6 @@ export function LoremIpsumTool() {
     setOutput(result);
     setGenKey((k) => k + 1);
   }
-
-  useToolKeys({ onSubmit: generate });
 
   return (
     <div className="flex h-full flex-col gap-3">
@@ -62,9 +58,6 @@ export function LoremIpsumTool() {
             </Button>
           </>
         )}
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘↵</Kbd> generate
-        </span>
       </div>
 
       <AnimatePresence mode="wait">

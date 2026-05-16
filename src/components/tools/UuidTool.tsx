@@ -2,12 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
 import { Copy, Plus, Minus, RotateCcw } from "lucide-react";
 import { copyToClipboard } from "@/lib/copy";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { motion, AnimatePresence } from "framer-motion";
 
 type UuidVersion = "v1" | "v4" | "v7";
@@ -34,8 +32,6 @@ export function UuidTool() {
     );
     setGenKey((k) => k + 1);
   }
-
-  useToolKeys({ onSubmit: generate });
 
   function copyAll() {
     copyToClipboard(uuids.join("\n"));
@@ -83,9 +79,6 @@ export function UuidTool() {
             </Button>
           </>
         )}
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘↵</Kbd> generate
-        </span>
       </div>
 
       <AnimatePresence mode="wait">

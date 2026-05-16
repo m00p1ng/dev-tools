@@ -2,11 +2,9 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { Download, Upload, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import QRCode from "qrcode";
@@ -32,8 +30,6 @@ export function QrCodeTool() {
   const [readError, setReadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isDragging: isGenDragging, dropProps: genDropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -112,9 +108,6 @@ export function QrCodeTool() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">{tabButtons}</div>
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <Kbd>⌘K</Kbd> clear
-                </span>
                 <Button size="sm" variant="ghost" onClick={() => setInput("")}>
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>

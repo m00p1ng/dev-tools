@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RotateCcw, Download, Info, ZoomIn, ZoomOut } from "lucide-react";
 import { CopyButton } from "@/components/ui/copy-button";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { useTheme } from "@/hooks/useTheme";
 import mermaid from "mermaid";
 import Editor from "react-simple-code-editor";
@@ -93,7 +92,6 @@ export function MermaidTool() {
   const [input, setInput] = useLocalStorage("tool:mermaid", EXAMPLE);
   const [svg, setSvg] = useState("");
 
-  useToolKeys({ onClear: () => setInput("") });
   const [error, setError] = useState("");
   const idRef = useRef(0);
   const { theme } = useTheme();

@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -27,8 +25,6 @@ export function UnixTimeTool() {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const parsedDate = (() => {
     if (!input.trim()) return null;
@@ -69,9 +65,6 @@ export function UnixTimeTool() {
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">Input (Unix Timestamp or Date)</p>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Kbd>⌘K</Kbd> clear
-            </span>
             <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setInput(String(now))}>Now</Button>
           </div>
         </div>

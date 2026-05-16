@@ -3,11 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Copy } from "lucide-react";
 import { copyToClipboard } from "@/lib/copy";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CHARSET = {
@@ -122,8 +120,6 @@ export function RandomStringTool() {
 
   const generate = () => setVersion((v) => v + 1);
 
-  useToolKeys({ onSubmit: generate });
-
   const toggle = (key: keyof typeof options) => {
     setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -151,9 +147,6 @@ export function RandomStringTool() {
             <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
           </Button>
         )}
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘↵</Kbd> generate
-        </span>
       </div>
 
       <AnimatePresence mode="wait">

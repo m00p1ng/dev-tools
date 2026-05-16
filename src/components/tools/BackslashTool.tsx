@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,8 +13,6 @@ export function BackslashTool() {
   const [input, setInput] = useLocalStorage("tool:backslash", "");
   const [mode, setMode] = useState<Mode>("escape");
   const { isDragging, dropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const output = useMemo(() => {
     if (!input) return "";
@@ -53,9 +49,6 @@ export function BackslashTool() {
           onClick={() => setInput('Hello "World"\nNew line\tTabbed')}>
           Example
         </Button>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear
-        </span>
       </div>
 
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">

@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -27,8 +25,6 @@ export function HashTool() {
   const [input, setInput] = useLocalStorage("tool:hash", "");
   const [encoding, setEncoding] = useState<"hex" | "base64">("hex");
   const { isDragging, dropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const results: Record<Algo, string> = {} as Record<Algo, string>;
   if (input) {
@@ -65,9 +61,6 @@ export function HashTool() {
           onClick={() => setInput("Hello, World!")}>
           Example
         </Button>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear
-        </span>
       </div>
 
       <Textarea

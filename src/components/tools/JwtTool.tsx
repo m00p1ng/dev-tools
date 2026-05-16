@@ -5,7 +5,6 @@ import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { jwtDecode } from "jwt-decode";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -234,7 +233,6 @@ export function JwtTool() {
   const skipPayloadSync = useRef(false);
 
   const { isDragging, dropProps } = useDropText((text) => decode(text.trim()));
-  useToolKeys({ onClear: () => { decode(""); setSecret(""); } });
 
   function decode(val: string) {
     setInput(val);

@@ -2,10 +2,8 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import { CopyButton } from "@/components/ui/copy-button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import cronstrue from "cronstrue";
@@ -28,8 +26,6 @@ const itemVariants = {
 export function CronTool() {
   const [input, setInput] = useLocalStorage("tool:cron", "0 9 * * 1");
   const [error, setError] = useState("");
-
-  useToolKeys({ onClear: () => handleChange("") });
 
   const { description, nextRuns } = useMemo(() => {
     try {
@@ -59,9 +55,6 @@ export function CronTool() {
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">Cron Expression</p>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Kbd>⌘K</Kbd> clear
-            </span>
             <Button size="sm" variant="ghost" onClick={() => handleChange("")}>
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>

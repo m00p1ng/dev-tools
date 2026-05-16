@@ -4,10 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { CodeBlock } from "@/components/ui/code-block";
-import { Kbd } from "@/components/ui/kbd";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { useToolKeys } from "@/hooks/useToolKeys";
 import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Papa from "papaparse";
@@ -16,8 +14,6 @@ export function CsvToJsonTool() {
   const [input, setInput] = useLocalStorage("tool:csv-to-json", "");
   const [header, setHeader] = useState(true);
   const { isDragging, dropProps } = useDropText(setInput);
-
-  useToolKeys({ onClear: () => setInput("") });
 
   const { output, error } = useMemo(() => {
     if (!input.trim()) return { output: "", error: "" };
@@ -40,9 +36,6 @@ export function CsvToJsonTool() {
           <Switch checked={header} onCheckedChange={setHeader} />
           First row as header
         </label>
-        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Kbd>⌘K</Kbd> clear
-        </span>
       </div>
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
