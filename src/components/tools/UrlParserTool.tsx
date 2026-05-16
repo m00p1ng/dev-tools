@@ -1,10 +1,9 @@
 import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolLayout, ToolToolbar } from "@/components/ui/tool-layout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { RotateCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -155,17 +154,12 @@ export function UrlParserTool() {
     : [];
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <ToolLayout>
       <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-            onClick={() => setInput("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}>
-            Example
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <ToolToolbar
+          onExample={() => setInput("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}
+          onClear={() => setInput("")}
+        />
         <div className="relative">
           <div
             aria-hidden
@@ -245,6 +239,6 @@ export function UrlParserTool() {
           )}
         </div>
       )}
-    </div>
+    </ToolLayout>
   );
 }

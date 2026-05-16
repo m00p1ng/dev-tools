@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RotateCcw, Download, Info, ZoomIn, ZoomOut } from "lucide-react";
+import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@/components/ui/tool-layout";
+import { Download, Info, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { CopyButton } from "@/components/ui/copy-button";
 import mermaid from "mermaid";
 import Editor from "react-simple-code-editor";
@@ -146,15 +147,12 @@ export function MermaidTool() {
   }, [input, isDark]);
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <ToolLayout>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
-        <div className="flex flex-col gap-1 min-h-0">
-          <div className="flex items-center justify-between">
-            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => setInput(EXAMPLE)}>
-              Example
-            </Button>
-            <div className="flex items-center gap-1">
+      <ToolPanels>
+        <ToolPane gap={1}>
+          <ToolToolbar
+            left={
               <a
                 href="https://mermaid.js.org/syntax/flowchart.html"
                 target="_blank"
@@ -164,11 +162,10 @@ export function MermaidTool() {
                 <Info className="h-3.5 w-3.5" />
                 Syntax
               </a>
-              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-                <RotateCcw className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
+            }
+            onExample={() => setInput(EXAMPLE)}
+            onClear={() => setInput("")}
+          />
           <div className="relative flex-1 overflow-auto rounded-md border border-input bg-background text-xs">
             {input && <CopyButton text={input} className="absolute right-2 top-2 z-10" />}
             <Editor
@@ -187,9 +184,8 @@ export function MermaidTool() {
               spellCheck={false}
             />
           </div>
-        </div>
-        <div className="flex flex-col gap-1 min-h-0">
-          <div className="hidden lg:block h-8 shrink-0" />
+        </ToolPane>
+        <ToolOutputPane gap={1}>
           <div
             className="relative flex-1 overflow-hidden rounded-md border border-border flex items-center justify-center"
             style={{ cursor: isDragging ? "grabbing" : "grab" }}
@@ -253,8 +249,8 @@ export function MermaidTool() {
               : !error && <p className="text-xs text-muted-foreground">Diagram will appear here...</p>
             }
           </div>
-        </div>
-      </div>
-    </div>
+        </ToolOutputPane>
+      </ToolPanels>
+    </ToolLayout>
   );
 }

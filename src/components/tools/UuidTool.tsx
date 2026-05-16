@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7 } from "uuid";
 import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,8 +71,8 @@ export function UuidTool() {
   }, [algorithm, count, resolvedNamespace, name, version]);
 
   return (
-    <div className="flex h-full gap-4 min-h-0">
-      <div className="w-64 shrink-0 flex flex-col gap-4">
+    <ToolSidebarLayout>
+      <ToolSidebar>
         <div className="space-y-1.5">
           <p className="text-sm font-medium">Algorithm</p>
           <select
@@ -149,7 +150,7 @@ export function UuidTool() {
             <CopyButton text={results.join("\n")} withLabel />
           )}
         </div>
-      </div>
+      </ToolSidebar>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -169,6 +170,6 @@ export function UuidTool() {
           ))}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </ToolSidebarLayout>
   );
 }

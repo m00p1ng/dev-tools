@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CHARSET = {
@@ -123,8 +124,8 @@ export function RandomStringTool() {
   };
 
   return (
-    <div className="flex h-full gap-4 min-h-0">
-      <div className="w-64 shrink-0 flex flex-col gap-4">
+    <ToolSidebarLayout>
+      <ToolSidebar>
         <SliderWithInput label="Length" value={length} min={1} max={256} onChange={setLength} />
         <SliderWithInput label="Count" value={count} min={1} max={50} onChange={setCount} />
 
@@ -143,7 +144,7 @@ export function RandomStringTool() {
             <CopyButton text={results.join("\n")} withLabel />
           )}
         </div>
-      </div>
+      </ToolSidebar>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -163,6 +164,6 @@ export function RandomStringTool() {
           ))}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </ToolSidebarLayout>
   );
 }

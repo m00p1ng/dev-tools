@@ -3,9 +3,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@/components/ui/tool-layout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import CryptoJS from "crypto-js";
@@ -44,28 +44,21 @@ export function HashTool() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
-        <div className="flex flex-col gap-2 min-h-0">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1">
-              {(["hex", "base64"] as const).map((enc) => (
+    <ToolLayout>
+      <ToolPanels>
+        <ToolPane>
+          <ToolToolbar
+            left={
+              (["hex", "base64"] as const).map((enc) => (
                 <Button key={enc} size="sm" variant={encoding === enc ? "default" : "outline"}
                   onClick={() => setEncoding(enc)}>
                   {enc}
                 </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-1">
-              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-                onClick={() => setInput("Hello, World!")}>
-                Example
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-                <RotateCcw className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
+              ))
+            }
+            onExample={() => setInput("Hello, World!")}
+            onClear={() => setInput("")}
+          />
           <Textarea
             placeholder="Enter text to hash… or drop a file"
             value={input}
@@ -74,9 +67,8 @@ export function HashTool() {
               isDragging && "ring-2 ring-primary/50 bg-primary/5")}
             {...dropProps}
           />
-        </div>
-        <div className="flex flex-col gap-2 min-h-0">
-          <div className="hidden lg:block h-8 shrink-0" />
+        </ToolPane>
+        <ToolOutputPane>
           <AnimatePresence mode="wait">
             <motion.div
               key={encoding + (input ? "data" : "empty")}
@@ -100,8 +92,8 @@ export function HashTool() {
               ))}
             </motion.div>
           </AnimatePresence>
-        </div>
-      </div>
-    </div>
+        </ToolOutputPane>
+      </ToolPanels>
+    </ToolLayout>
   );
 }

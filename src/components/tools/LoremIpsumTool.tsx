@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { LoremIpsum } from "lorem-ipsum";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,8 +26,8 @@ export function LoremIpsumTool() {
   }, [unit, count, version]);
 
   return (
-    <div className="flex h-full gap-4 min-h-0">
-      <div className="w-64 shrink-0 flex flex-col gap-4">
+    <ToolSidebarLayout>
+      <ToolSidebar>
         <div className="space-y-1.5">
           <p className="text-sm font-medium">Unit</p>
           <select
@@ -67,7 +68,7 @@ export function LoremIpsumTool() {
           <Button size="sm" onClick={() => setVersion((v) => v + 1)}>Regenerate</Button>
           {output && <CopyButton text={output} withLabel />}
         </div>
-      </div>
+      </ToolSidebar>
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -85,6 +86,6 @@ export function LoremIpsumTool() {
           />
         </motion.div>
       </AnimatePresence>
-    </div>
+    </ToolSidebarLayout>
   );
 }

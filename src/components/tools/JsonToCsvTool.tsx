@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@/components/ui/tool-layout";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useDropText } from "@/hooks/useDropText";
-import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Papa from "papaparse";
 
@@ -25,20 +24,14 @@ export function JsonToCsvTool() {
   }, [input]);
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <ToolLayout>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
-
-      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
-        <div className="flex flex-col gap-1 min-h-0">
-          <div className="flex items-center justify-between">
-            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
-              onClick={() => setInput('[{"name":"Alice","age":30},{"name":"Bob","age":25}]')}>
-              Example
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+      <ToolPanels>
+        <ToolPane gap={1}>
+          <ToolToolbar
+            onExample={() => setInput('[{"name":"Alice","age":30},{"name":"Bob","age":25}]')}
+            onClear={() => setInput("")}
+          />
           <Textarea
             placeholder={'[\n  {"name": "Alice", "age": 30},\n  {"name": "Bob", "age": 25}\n]'}
             value={input}
@@ -47,9 +40,8 @@ export function JsonToCsvTool() {
               isDragging && "ring-2 ring-primary/50 bg-primary/5")}
             {...dropProps}
           />
-        </div>
-        <div className="flex flex-col gap-1 min-h-0">
-          <div className="hidden lg:block h-8 shrink-0" />
+        </ToolPane>
+        <ToolOutputPane gap={1}>
           <div className="relative flex-1 min-h-0">
             <Textarea
               readOnly
@@ -59,8 +51,8 @@ export function JsonToCsvTool() {
             />
             {output && <CopyButton text={output} className="absolute right-2 top-2" />}
           </div>
-        </div>
-      </div>
-    </div>
+        </ToolOutputPane>
+      </ToolPanels>
+    </ToolLayout>
   );
 }
