@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "dev-tools",
+  "productName": "Dev Tools",
   "version": "0.1.0",
   "identifier": "com.m00p1ng.dev-tools.app",
   "build": {

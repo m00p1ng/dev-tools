@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
-import { Copy, Plus, Trash2, RotateCcw } from "lucide-react";
+import { Copy, Plus, Minus, RotateCcw } from "lucide-react";
 import { copyToClipboard } from "@/lib/copy";
 
 type UuidVersion = "v1" | "v4" | "v7";
@@ -46,7 +46,7 @@ export function UuidTool() {
         <div className="flex items-center gap-2">
           <Button size="icon" variant="outline" className="h-8 w-8"
             onClick={() => setCount(Math.max(1, count - 1))}>
-            <Trash2 className="h-3.5 w-3.5" />
+            <Minus className="h-3.5 w-3.5" />
           </Button>
           <Input
             type="number"
