@@ -17,6 +17,7 @@ import { HashTool } from "./tools/HashTool";
 import { MarkdownTool } from "./tools/MarkdownTool";
 import { CronTool } from "./tools/CronTool";
 import { RandomStringTool } from "./tools/RandomStringTool";
+import { QrCodeTool } from "./tools/QrCodeTool";
 
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "json-format": JsonFormatTool,
@@ -36,6 +37,7 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "markdown": MarkdownTool,
   "cron": CronTool,
   "random-string": RandomStringTool,
+  "qrcode": QrCodeTool,
 };
 
 interface ToolContentProps {
