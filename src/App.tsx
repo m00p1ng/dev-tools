@@ -8,11 +8,13 @@ import { TOOLS } from "@/tools";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { useFontSize } from "@/hooks/useFontSize";
 
 export default function App() {
   const [activeTool, setActiveTool] = useState(TOOLS[0].id);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { theme } = useTheme();
+  useFontSize();
 
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
