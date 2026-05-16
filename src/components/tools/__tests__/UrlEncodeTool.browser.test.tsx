@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { UrlEncodeTool } from "./UrlEncodeTool";
+import { UrlEncodeTool } from "../UrlEncodeTool";
 
 beforeEach(() => localStorage.clear());
 

@@ -10,7 +10,7 @@
     "lint": "eslint src --max-warnings 0",
     "test": "vitest run",
     "test:ui": "vitest run --config vitest.browser.config.ts",
-    "test:coverage": "vitest run --coverage --coverage.reporter=json --coverage.reportsDirectory=.coverage-tmp/unit; vitest run --config vitest.browser.config.ts --coverage --coverage.reporter=json --coverage.reportsDirectory=.coverage-tmp/browser; node scripts/merge-coverage.mjs",
+    "test:coverage": "node scripts/coverage.mjs",
     "test:watch": "vitest",
     "tauri": "tauri"
   },

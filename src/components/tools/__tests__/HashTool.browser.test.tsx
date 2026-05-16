@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { HashTool } from "./HashTool";
+import { HashTool } from "../HashTool";
 
 beforeEach(() => localStorage.clear());
 

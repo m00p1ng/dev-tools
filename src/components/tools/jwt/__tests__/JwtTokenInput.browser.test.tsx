@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import type { JwtParts } from "@/lib/tool-logic/security";
-import { JwtTokenInput } from "./JwtTokenInput";
+import { JwtTokenInput } from "../JwtTokenInput";
 
 const parts: JwtParts = {
   header: { alg: "HS256", typ: "JWT" },

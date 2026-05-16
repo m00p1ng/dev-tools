@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { UrlParserTool } from "./UrlParserTool";
+import { UrlParserTool } from "../UrlParserTool";
 
 beforeEach(() => localStorage.clear());
 

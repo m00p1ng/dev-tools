@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { BackslashTool } from "./BackslashTool";
+import { BackslashTool } from "../BackslashTool";
 
 beforeEach(() => localStorage.clear());
 

@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { MermaidTool } from "./MermaidTool";
+import { MermaidTool } from "../MermaidTool";
 
 beforeEach(() => localStorage.clear());
 

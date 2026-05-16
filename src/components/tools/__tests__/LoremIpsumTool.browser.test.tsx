@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { LoremIpsumTool } from "./LoremIpsumTool";
+import { LoremIpsumTool } from "../LoremIpsumTool";
 
 test("generates non-empty lorem ipsum text by default", async () => {
   const screen = await render(<LoremIpsumTool />);

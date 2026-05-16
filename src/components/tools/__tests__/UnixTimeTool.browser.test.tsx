@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { UnixTimeTool } from "./UnixTimeTool";
+import { UnixTimeTool } from "../UnixTimeTool";
 
 test("shows current Unix timestamp label", async () => {
   const screen = await render(<UnixTimeTool />);

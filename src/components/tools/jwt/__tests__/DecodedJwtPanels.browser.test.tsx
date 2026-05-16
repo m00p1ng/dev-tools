@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { DecodedPanel } from "./DecodedJwtPanels";
+import { DecodedPanel } from "../DecodedJwtPanels";
 
 test("renders highlighted JSON for read-only data", async () => {
   const screen = await render(<DecodedPanel title="Header" data={{ alg: "HS256", typ: "JWT" }} />);

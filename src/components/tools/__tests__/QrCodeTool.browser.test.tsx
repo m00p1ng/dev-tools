@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { QrCodeTool } from "./QrCodeTool";
+import { QrCodeTool } from "../QrCodeTool";
 
 beforeEach(() => localStorage.clear());
 

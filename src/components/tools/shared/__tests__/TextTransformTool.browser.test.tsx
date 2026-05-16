@@ -1,14 +1,9 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { TextTransformTool } from "./TextTransformTool";
+import { TextTransformTool } from "../TextTransformTool";
 
 const caseTransform = (input: string, mode: "upper" | "lower") =>
   mode === "upper" ? input.toUpperCase() : input.toLowerCase();
-
-const errorTransform = (input: string, _mode: "default"): string => {
-  if (input === "bad") throw new Error("Transform failed");
-  return input.toUpperCase();
-};
 
 beforeEach(() => localStorage.clear());
 

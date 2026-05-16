@@ -1,7 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { userEvent } from "@vitest/browser/context";
-import { Sidebar } from "./Sidebar";
+import { Sidebar } from "../Sidebar";
 
 beforeEach(() => localStorage.clear());
 

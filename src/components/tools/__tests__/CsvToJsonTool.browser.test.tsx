@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { CsvToJsonTool } from "./CsvToJsonTool";
+import { CsvToJsonTool } from "../CsvToJsonTool";
 
 beforeEach(() => localStorage.clear());
 

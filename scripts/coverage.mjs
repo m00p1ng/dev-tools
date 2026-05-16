@@ -1,7 +1,29 @@
 import { readFileSync, rmSync } from "fs";
+import { spawnSync } from "child_process";
 import libCoverage from "istanbul-lib-coverage";
 import libReport from "istanbul-lib-report";
 import reports from "istanbul-reports";
+
+const run = (cmd, args) => {
+  const result = spawnSync(cmd, args, { stdio: "inherit", shell: false });
+  if (result.status !== 0) process.exit(result.status ?? 1);
+};
+
+run("vitest", [
+  "run",
+  "--coverage",
+  "--coverage.reporter=json",
+  "--coverage.reportsDirectory=.coverage-tmp/unit",
+]);
+
+run("vitest", [
+  "run",
+  "--config",
+  "vitest.browser.config.ts",
+  "--coverage",
+  "--coverage.reporter=json",
+  "--coverage.reportsDirectory=.coverage-tmp/browser",
+]);
 
 const tmpDirs = [".coverage-tmp/unit", ".coverage-tmp/browser"];
 const map = libCoverage.createCoverageMap();

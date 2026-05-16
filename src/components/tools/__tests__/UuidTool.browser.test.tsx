@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { UuidTool } from "./UuidTool";
+import { UuidTool } from "../UuidTool";
 
 test("generates a UUID v4 by default", async () => {
   const screen = await render(<UuidTool />);

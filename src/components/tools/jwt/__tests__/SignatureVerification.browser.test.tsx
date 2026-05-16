@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import type { JwtParts } from "@/lib/tool-logic/security";
-import { SignatureVerification } from "./SignatureVerification";
+import { SignatureVerification } from "../SignatureVerification";
 
 const hs256Parts: JwtParts = {
   header: { alg: "HS256", typ: "JWT" },

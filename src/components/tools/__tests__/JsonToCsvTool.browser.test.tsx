@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { JsonToCsvTool } from "./JsonToCsvTool";
+import { JsonToCsvTool } from "../JsonToCsvTool";
 
 const INPUT_PLACEHOLDER = '[\n  {"name": "Alice", "age": 30},\n  {"name": "Bob", "age": 25}\n]';
 

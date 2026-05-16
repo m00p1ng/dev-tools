@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { JsonFormatTool } from "./JsonFormatTool";
+import { JsonFormatTool } from "../JsonFormatTool";
 
 beforeEach(() => localStorage.clear());
 

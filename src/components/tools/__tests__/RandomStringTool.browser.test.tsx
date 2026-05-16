@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { RandomStringTool } from "./RandomStringTool";
+import { RandomStringTool } from "../RandomStringTool";
 
 test("generates a non-empty random string by default", async () => {
   const screen = await render(<RandomStringTool />);

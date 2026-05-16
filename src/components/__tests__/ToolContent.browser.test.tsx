@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { ToolContent } from "./ToolContent";
+import { ToolContent } from "../ToolContent";
 import { TOOLS } from "@/tools";
 
 beforeEach(() => localStorage.clear());

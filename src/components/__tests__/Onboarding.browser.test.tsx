@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { Onboarding } from "./Onboarding";
+import { Onboarding } from "../Onboarding";
 import { TOOLS } from "@/tools";
 
 test("renders title and all category names", async () => {

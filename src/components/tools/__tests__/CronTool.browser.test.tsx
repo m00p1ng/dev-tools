@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { CronTool } from "./CronTool";
+import { CronTool } from "../CronTool";
 
 beforeEach(() => localStorage.clear());
 

@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { Base64Tool } from "./Base64Tool";
+import { Base64Tool } from "../Base64Tool";
 
 beforeEach(() => localStorage.clear());
 

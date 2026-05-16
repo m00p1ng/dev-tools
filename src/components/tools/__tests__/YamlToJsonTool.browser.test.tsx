@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { YamlToJsonTool } from "./YamlToJsonTool";
+import { YamlToJsonTool } from "../YamlToJsonTool";
 
 beforeEach(() => localStorage.clear());
 
