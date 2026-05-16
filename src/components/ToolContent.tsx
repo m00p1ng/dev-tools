@@ -8,6 +8,10 @@ import { BackslashTool } from "./tools/BackslashTool";
 import { JwtTool } from "./tools/JwtTool";
 import { UnixTimeTool } from "./tools/UnixTimeTool";
 import { UuidTool } from "./tools/UuidTool";
+import { YamlToJsonTool } from "./tools/YamlToJsonTool";
+import { JsonToYamlTool } from "./tools/JsonToYamlTool";
+import { JsonToCsvTool } from "./tools/JsonToCsvTool";
+import { CsvToJsonTool } from "./tools/CsvToJsonTool";
 
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "json-format": JsonFormatTool,
@@ -18,6 +22,10 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "jwt": JwtTool,
   "unix-time": UnixTimeTool,
   "uuid": UuidTool,
+  "yaml-to-json": YamlToJsonTool,
+  "json-to-yaml": JsonToYamlTool,
+  "json-to-csv": JsonToCsvTool,
+  "csv-to-json": CsvToJsonTool,
 };
 
 interface ToolContentProps {
