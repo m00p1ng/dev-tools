@@ -2,7 +2,7 @@
 
 A cross-platform desktop app with 18 offline-first developer utilities. Built with Tauri v2, React, and TypeScript.
 
-![Dev Tools screenshot](public/screenshot.png)
+![Dev Tools screenshot](public/screenshot.png#123)
 
 ## Tools
 
