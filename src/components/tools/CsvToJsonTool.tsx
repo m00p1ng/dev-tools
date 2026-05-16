@@ -3,8 +3,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { CodeBlock } from "@/components/ui/code-block";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Copy, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import Papa from "papaparse";
 
 export function CsvToJsonTool() {
@@ -32,27 +33,14 @@ export function CsvToJsonTool() {
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
-      <div className="grid flex-1 grid-cols-2 gap-3 min-h-0">
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <Textarea
           placeholder={"name,age\nAlice,30\nBob,25"}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="h-full resize-none font-mono text-xs"
         />
-        <div className="relative">
-          <Textarea
-            readOnly
-            value={output}
-            placeholder="JSON output..."
-            className="h-full resize-none font-mono text-xs"
-          />
-          {output && (
-            <Button size="icon" variant="ghost" className="absolute right-2 top-2 h-6 w-6"
-              onClick={() => navigator.clipboard.writeText(output)}>
-              <Copy className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
+        <CodeBlock code={output} language="json" placeholder="JSON output..." />
       </div>
     </div>
   );

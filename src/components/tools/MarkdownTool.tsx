@@ -1,13 +1,13 @@
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
-import "highlight.js/styles/github-dark.css";
+import "highlight.js/styles/github.css";
 
 export function MarkdownTool() {
   const [input, setInput] = useLocalStorage("tool:markdown", "# Hello\n\nType **markdown** here.");
 
   return (
-    <div className="grid h-full grid-cols-2 gap-3 min-h-0">
+    <div className="grid h-full grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}

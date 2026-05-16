@@ -85,7 +85,7 @@ export function QrCodeTool() {
       </div>
 
       {tab === "generate" && (
-        <div className="flex flex-1 gap-4 min-h-0">
+        <div className="flex flex-col lg:flex-row flex-1 gap-4 min-h-0">
           <div className="flex flex-col gap-2 flex-1">
             <Textarea
               placeholder="Text or URL to encode..."

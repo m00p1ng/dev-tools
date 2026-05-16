@@ -39,7 +39,7 @@ export function BackslashTool() {
         </Button>
       </div>
 
-      <div className="grid flex-1 grid-cols-2 gap-3 min-h-0">
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <Textarea
           placeholder="Input text..."
           value={input}

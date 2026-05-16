@@ -32,7 +32,7 @@ export function UrlEncodeTool() {
 
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
-      <div className="grid flex-1 grid-cols-2 gap-3 min-h-0">
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-2 gap-3 min-h-0">
         <Textarea
           placeholder="Input text or encoded string..."
           value={input}
