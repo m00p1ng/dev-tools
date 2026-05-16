@@ -12,6 +12,11 @@ import { YamlToJsonTool } from "./tools/YamlToJsonTool";
 import { JsonToYamlTool } from "./tools/JsonToYamlTool";
 import { JsonToCsvTool } from "./tools/JsonToCsvTool";
 import { CsvToJsonTool } from "./tools/CsvToJsonTool";
+import { LoremIpsumTool } from "./tools/LoremIpsumTool";
+import { HashTool } from "./tools/HashTool";
+import { MarkdownTool } from "./tools/MarkdownTool";
+import { CronTool } from "./tools/CronTool";
+import { RandomStringTool } from "./tools/RandomStringTool";
 
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "json-format": JsonFormatTool,
@@ -26,6 +31,11 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "json-to-yaml": JsonToYamlTool,
   "json-to-csv": JsonToCsvTool,
   "csv-to-json": CsvToJsonTool,
+  "lorem-ipsum": LoremIpsumTool,
+  "hash": HashTool,
+  "markdown": MarkdownTool,
+  "cron": CronTool,
+  "random-string": RandomStringTool,
 };
 
 interface ToolContentProps {
