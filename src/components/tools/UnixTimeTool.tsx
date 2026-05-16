@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw } from "lucide-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -51,22 +50,8 @@ export function UnixTimeTool() {
     setTsError("");
   }
 
-  function reset() {
-    const n = Math.floor(Date.now() / 1000);
-    setTimestamp(String(n));
-    setDateInput(dayjs().format("YYYY-MM-DD HH:mm:ss"));
-    setTsError("");
-    setDateError("");
-  }
-
   return (
     <div className="flex h-full flex-col gap-6 overflow-auto">
-      <div className="flex justify-end">
-        <Button size="sm" variant="ghost" onClick={reset}>
-          <RotateCcw className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-
       <div className="rounded-lg border border-border p-4">
         <p className="text-xs text-muted-foreground mb-1">Current Unix Timestamp</p>
         <p className="font-mono text-2xl font-semibold">{now}</p>
