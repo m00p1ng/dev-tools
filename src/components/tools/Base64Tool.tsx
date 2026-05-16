@@ -31,8 +31,8 @@ export function Base64Tool() {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" variant={mode === "encode" ? "default" : "outline"} onClick={() => setMode("encode")}>Encode</Button>
-        <Button size="sm" variant={mode === "decode" ? "default" : "outline"} onClick={() => setMode("decode")}>Decode</Button>
+        <Button size="sm" variant={mode === "encode" ? "default" : "outline"} onClick={() => { setMode("encode"); if (output) setInput(output); }}>Encode</Button>
+        <Button size="sm" variant={mode === "decode" ? "default" : "outline"} onClick={() => { setMode("decode"); if (output) setInput(output); }}>Decode</Button>
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>

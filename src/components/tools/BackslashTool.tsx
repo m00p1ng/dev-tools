@@ -32,8 +32,8 @@ export function BackslashTool() {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex gap-2">
-        <Button size="sm" variant={mode === "escape" ? "default" : "outline"} onClick={() => setMode("escape")}>Escape</Button>
-        <Button size="sm" variant={mode === "unescape" ? "default" : "outline"} onClick={() => setMode("unescape")}>Unescape</Button>
+        <Button size="sm" variant={mode === "escape" ? "default" : "outline"} onClick={() => { setMode("escape"); if (output) setInput(output); }}>Escape</Button>
+        <Button size="sm" variant={mode === "unescape" ? "default" : "outline"} onClick={() => { setMode("unescape"); if (output) setInput(output); }}>Unescape</Button>
         <Button size="sm" variant="ghost" onClick={() => setInput("")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>

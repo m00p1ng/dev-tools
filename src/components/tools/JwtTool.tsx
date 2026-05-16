@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { jwtDecode } from "jwt-decode";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, RotateCcw } from "lucide-react";
 
 // ---- helpers ----
 
@@ -227,10 +227,16 @@ export function JwtTool() {
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Encoded Token
           </span>
-          <Button size="sm" variant="ghost" className="text-xs text-muted-foreground h-auto py-0"
-            onClick={() => decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")}>
-            Example
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" className="h-auto py-0 px-1.5"
+              onClick={() => { decode(""); setSecret(""); }}>
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground h-auto py-0"
+              onClick={() => decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")}>
+              Example
+            </Button>
+          </div>
         </div>
 
         {/* color overlay textarea */}

@@ -3,7 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Download, Upload, Copy } from "lucide-react";
+import { Download, Upload, Copy, RotateCcw } from "lucide-react";
 import QRCode from "qrcode";
 import jsQR from "jsqr";
 
@@ -97,6 +97,9 @@ export function QrCodeTool() {
               className="flex-1 resize-none font-mono text-xs"
             />
             <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
               <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
                 onClick={() => setInput("https://example.com")}>
                 Example

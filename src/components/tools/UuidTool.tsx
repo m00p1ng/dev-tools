@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Trash2, RotateCcw } from "lucide-react";
 
 type UuidVersion = "v1" | "v4" | "v7";
 
@@ -63,9 +63,14 @@ export function UuidTool() {
 
         <Button size="sm" onClick={generate}>Generate</Button>
         {uuids.length > 0 && (
-          <Button size="sm" variant="outline" onClick={copyAll}>
-            <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={copyAll}>
+              <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setUuids([])}>
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          </>
         )}
       </div>
 

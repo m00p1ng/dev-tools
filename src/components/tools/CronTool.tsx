@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { RotateCcw } from "lucide-react";
 import cronstrue from "cronstrue";
 import { CronExpressionParser } from "cron-parser";
 
@@ -43,7 +45,12 @@ export function CronTool() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-auto">
       <div className="space-y-2">
-        <p className="text-sm font-medium">Cron Expression</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">Cron Expression</p>
+          <Button size="sm" variant="ghost" onClick={() => handleChange("")}>
+            <RotateCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
         <Input
           value={input}
           onChange={(e) => handleChange(e.target.value)}

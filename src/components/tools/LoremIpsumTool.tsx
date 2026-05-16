@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy } from "lucide-react";
+import { Copy, RotateCcw } from "lucide-react";
 import { LoremIpsum } from "lorem-ipsum";
 
 const lorem = new LoremIpsum();
@@ -45,9 +45,14 @@ export function LoremIpsumTool() {
         <Button size="sm" onClick={generate}>Generate</Button>
 
         {output && (
-          <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(output)}>
-            <Copy className="h-3.5 w-3.5 mr-1" /> Copy
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(output)}>
+              <Copy className="h-3.5 w-3.5 mr-1" /> Copy
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setOutput("")}>
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          </>
         )}
       </div>
 

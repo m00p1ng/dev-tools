@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Copy, Plus, Trash2 } from "lucide-react";
+import { Copy, Plus, Trash2, RotateCcw } from "lucide-react";
 
 const CHARSET = {
   uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -93,6 +93,11 @@ export function RandomStringTool() {
         {results.length > 1 && (
           <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(results.join("\n"))}>
             <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
+          </Button>
+        )}
+        {results.length > 0 && (
+          <Button size="sm" variant="ghost" onClick={() => setResults([])}>
+            <RotateCcw className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { RotateCcw } from "lucide-react";
 
 interface ParsedUrl {
   protocol: string;
@@ -65,6 +66,9 @@ export function UrlParserTool() {
           onChange={(e) => parse(e.target.value)}
           className="font-mono text-xs"
         />
+        <Button size="sm" variant="ghost" className="shrink-0" onClick={() => parse("")}>
+          <RotateCcw className="h-3.5 w-3.5" />
+        </Button>
         <Button size="sm" variant="ghost" className="text-xs text-muted-foreground shrink-0"
           onClick={() => parse("https://user:pass@example.com:8080/api/v1/users?role=admin&active=true#results")}>
           Example
