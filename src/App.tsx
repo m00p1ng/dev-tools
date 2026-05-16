@@ -4,22 +4,31 @@ import { Toaster } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToolContent } from "@/components/ToolContent";
+import { Onboarding } from "@/components/Onboarding";
 import { TOOLS } from "@/tools";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useFontSize } from "@/hooks/useFontSize";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 export default function App() {
   const [activeTool, setActiveTool] = useState(TOOLS[0].id);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage<boolean>("onboarding-v1", false);
   const { theme } = useTheme();
   useFontSize();
+
+  const handleOnboardingComplete = (toolId?: string) => {
+    setHasSeenOnboarding(true);
+    if (toolId) setActiveTool(toolId);
+  };
 
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {!hasSeenOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <Toaster position="bottom-right" theme={theme} />
       <AnimatePresence initial={false}>
         {sidebarOpen && (
