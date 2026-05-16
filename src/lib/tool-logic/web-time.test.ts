@@ -49,4 +49,29 @@ describe("web and time helpers", () => {
     const date = parseUnixInput("1700000000");
     expect(date ? formatWithGmt(date) : "").toMatch(/GMT [+-]\d/);
   });
+
+  it("returns error for empty URL", () => {
+    expect(parseUrl("")).toEqual({ ok: false, error: "Invalid URL" });
+  });
+
+  it("returns null for empty unix input", () => {
+    expect(parseUnixInput("")).toBeNull();
+    expect(parseUnixInput("   ")).toBeNull();
+  });
+
+  it("parses URL with no auth, port, or query", () => {
+    expect(parseUrl("https://example.com/path")).toMatchObject({
+      ok: true,
+      value: {
+        protocol: "https:",
+        username: "",
+        password: "",
+        port: "",
+        pathname: "/path",
+        search: "",
+        hash: "",
+        params: [],
+      },
+    });
+  });
 });

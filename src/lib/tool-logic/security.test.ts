@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   base64urlEncode,
+  base64urlToBytes,
   decodeJwtToken,
   generateHashes,
   signHS256,
@@ -42,5 +43,44 @@ describe("security helpers", () => {
     await expect(verifyHS256(token, "secret", false)).resolves.toBe(true);
     await expect(verifyHS256(token, "wrong", false)).resolves.toBe(false);
     expect(decodeJwtToken("not-a-token")).toEqual({ ok: false, error: "Invalid JWT" });
+  });
+
+  it("verifies HS256 with base64url-encoded secret", async () => {
+    const header = base64urlEncode(JSON.stringify({ alg: "HS256" }));
+    const payload = base64urlEncode(JSON.stringify({ sub: "456" }));
+    const signingInput = `${header}.${payload}`;
+    const b64urlSecret = base64urlEncode("myrawsecret");
+    const token = `${signingInput}.${await signHS256(signingInput, b64urlSecret, true)}`;
+
+    await expect(verifyHS256(token, b64urlSecret, true)).resolves.toBe(true);
+    await expect(verifyHS256(token, b64urlSecret, false)).resolves.toBe(false);
+  });
+
+  it("rejects malformed tokens in verifyHS256", async () => {
+    await expect(verifyHS256("onlyone", "secret", false)).resolves.toBe(false);
+    await expect(verifyHS256("", "secret", false)).resolves.toBe(false);
+  });
+
+  it("decodes JWT with no exp field", async () => {
+    const header = base64urlEncode(JSON.stringify({ alg: "HS256" }));
+    const payload = base64urlEncode(JSON.stringify({ sub: "no-exp" }));
+    const signingInput = `${header}.${payload}`;
+    const token = `${signingInput}.${await signHS256(signingInput, "secret", false)}`;
+
+    const result = decodeJwtToken(token);
+    expect(result).toMatchObject({ ok: true, value: { isExpired: false, expiresAt: null } });
+  });
+
+  it("generates SHA-512 hex hash for known input", () => {
+    expect(generateHashes("hello", "hex")["SHA-512"]).toBe(
+      "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043",
+    );
+  });
+
+  it("base64urlToBytes round-trips with base64urlEncode", () => {
+    const original = "hello world";
+    const encoded = base64urlEncode(original);
+    const bytes = base64urlToBytes(encoded);
+    expect(new TextDecoder().decode(bytes)).toBe(original);
   });
 });

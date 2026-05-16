@@ -55,4 +55,20 @@ describe("data helpers", () => {
     });
     expect(jsonToCsv('{"name":"Alice"}')).toEqual({ ok: false, error: "Input must be a JSON array" });
   });
+
+  it("returns empty results for empty inputs", () => {
+    expect(formatJson("", "format")).toEqual({ ok: true, value: "", meta: { repaired: false } });
+    expect(yamlToJson("")).toEqual({ ok: true, value: "" });
+    expect(jsonToYaml("")).toEqual({ ok: true, value: "" });
+    expect(csvToJson("   ", true)).toEqual({ ok: true, value: "" });
+    expect(jsonToCsv("")).toEqual({ ok: true, value: "" });
+  });
+
+  it("reports invalid YAML", () => {
+    expect(yamlToJson("key: [\nbroken")).toMatchObject({ ok: false });
+  });
+
+  it("reports invalid JSON in jsonToCsv", () => {
+    expect(jsonToCsv("{bad json")).toMatchObject({ ok: false });
+  });
 });

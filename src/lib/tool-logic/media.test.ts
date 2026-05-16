@@ -19,4 +19,18 @@ describe("media helpers", () => {
     } as SVGElement;
     expect(resolveSvgDimensions(svg)).toEqual({ width: 640, height: 480 });
   });
+
+  it("falls back to 800x600 when all attributes are missing", () => {
+    const svg = {
+      getAttribute: () => null,
+    } as SVGElement;
+    expect(resolveSvgDimensions(svg)).toEqual({ width: 800, height: 600 });
+  });
+
+  it("uses viewBox with comma-separated values", () => {
+    const svg = {
+      getAttribute: (name: string) => ({ width: null, height: null, viewBox: "0,0,1024,768" })[name] ?? null,
+    } as SVGElement;
+    expect(resolveSvgDimensions(svg)).toEqual({ width: 1024, height: 768 });
+  });
 });

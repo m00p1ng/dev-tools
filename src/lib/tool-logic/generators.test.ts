@@ -5,6 +5,7 @@ import {
   clampNumber,
   generateObjectId,
   generateRandomString,
+  randomChar,
 } from "@/lib/tool-logic/generators";
 
 describe("generator helpers", () => {
@@ -33,5 +34,33 @@ describe("generator helpers", () => {
     const id = generateObjectId(1_700_000_000_000, new Uint8Array([1, 2, 3, 4, 5]));
     expect(id).toMatch(/^[0-9a-f]{24}$/);
     expect(id.startsWith("6553f1000102030405")).toBe(true);
+  });
+
+  it("returns empty string for empty charset", () => {
+    expect(generateRandomString(10, "", null)).toBe("");
+    expect(generateRandomString(10, "", RANDOM_CHARSET.symbols)).toBe("");
+  });
+
+  it("generates string without symbolCharset constraint", () => {
+    const bytes = new Uint8Array([10, 20, 30, 40, 50]);
+    const output = generateRandomString(5, RANDOM_CHARSET.letters, null, bytes);
+    expect(output).toHaveLength(5);
+    expect([...output].every((c) => RANDOM_CHARSET.letters.includes(c))).toBe(true);
+  });
+
+  it("skips symbol distribution for length < 2", () => {
+    const bytes = new Uint8Array([0, 1, 2, 3, 4, 5]);
+    const output = generateRandomString(1, RANDOM_CHARSET.letters + RANDOM_CHARSET.symbols, RANDOM_CHARSET.symbols, bytes);
+    expect(output).toHaveLength(1);
+  });
+
+  it("clamps with custom fallback", () => {
+    expect(clampNumber("bad", 1, 100, 50)).toBe(50);
+  });
+
+  it("randomChar picks from charset using modulo", () => {
+    expect(randomChar("abc", 0)).toBe("a");
+    expect(randomChar("abc", 1)).toBe("b");
+    expect(randomChar("abc", 3)).toBe("a");
   });
 });

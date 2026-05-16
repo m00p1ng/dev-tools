@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  decodeBase64,
+  encodeBase64,
   escapeBackslash,
   transformBackslash,
   transformBase64,
@@ -36,5 +38,20 @@ describe("encoding helpers", () => {
     expect(escapeBackslash(raw)).toBe(escaped);
     expect(unescapeBackslash(escaped)).toBe(raw);
     expect(transformBackslash(raw, "escape")).toBe(escaped);
+    expect(transformBackslash(escaped, "unescape")).toBe(raw);
+  });
+
+  it("returns empty for empty inputs", () => {
+    expect(transformBase64("", "encode")).toEqual({ ok: true, value: "" });
+    expect(transformBase64("", "decode")).toEqual({ ok: true, value: "" });
+    expect(transformUrlComponent("", "encode")).toEqual({ ok: true, value: "" });
+    expect(transformUrlComponent("", "decode")).toEqual({ ok: true, value: "" });
+    expect(transformBackslash("", "escape")).toBe("");
+    expect(transformBackslash("", "unescape")).toBe("");
+  });
+
+  it("encodeBase64 and decodeBase64 are inverses for ASCII", () => {
+    expect(encodeBase64("hello")).toBe("aGVsbG8=");
+    expect(decodeBase64("aGVsbG8=")).toBe("hello");
   });
 });
