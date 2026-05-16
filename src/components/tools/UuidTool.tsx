@@ -7,7 +7,7 @@ import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7 } from "uuid";
 import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
-import { generateObjectId } from "@/lib/tool-logic/generators";
+import { clampNumber, generateObjectId } from "@/lib/tool-logic/generators";
 
 type Algorithm = "v1" | "v3" | "v4" | "v5" | "v7" | "ulid" | "objectid";
 
@@ -122,7 +122,7 @@ export function UuidTool() {
               value={countRaw}
               onChange={(e) => setCountRaw(e.target.value)}
               onBlur={() => {
-                const n = Math.max(1, Math.min(100, Number(countRaw) || 1));
+                const n = clampNumber(countRaw, 1, 100);
                 setCount(n);
                 setCountRaw(String(n));
               }}
