@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,13 @@ function base64urlToBytes(b64url: string): Uint8Array {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
+function base64urlEncode(str: string): string {
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
 async function verifyHS256(token: string, secret: string, isBase64url: boolean): Promise<boolean> {
   try {
     const [h, p, sig] = token.split(".");
@@ -25,6 +32,16 @@ async function verifyHS256(token: string, secret: string, isBase64url: boolean):
   } catch {
     return false;
   }
+}
+
+async function signHS256(signingInput: string, secret: string, isBase64url: boolean): Promise<string> {
+  const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret);
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
+  return btoa(String.fromCharCode(...new Uint8Array(sig)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 function syntaxHighlight(json: string): string {
@@ -121,7 +138,43 @@ function ClaimsPanel({ data }: { data: Record<string, unknown> }) {
 
 type TabType = "json" | "claims";
 
-function DecodedPanel({ title, data }: { title: string; data: Record<string, unknown> }) {
+interface DecodedPanelProps {
+  title: string;
+  data: Record<string, unknown>;
+  editable?: boolean;
+  editValue?: string;
+  onEditChange?: (val: string) => void;
+  editError?: string;
+}
+
+const OVERLAY_SHARED = "font-mono text-xs p-3 whitespace-pre-wrap break-words leading-[1.5] tracking-normal";
+
+function EditableJsonOverlay({ value, onChange, error }: {
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+}) {
+  return (
+    <div>
+      <div className="grid min-h-[80px]">
+        <pre
+          aria-hidden
+          className={`[grid-area:1/1] ${OVERLAY_SHARED} pointer-events-none select-none`}
+          dangerouslySetInnerHTML={{ __html: syntaxHighlight(value) + "\n" }}
+        />
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`[grid-area:1/1] ${OVERLAY_SHARED} bg-transparent text-transparent caret-foreground resize-none outline-none`}
+          spellCheck={false}
+        />
+      </div>
+      {error && <p className="text-xs text-destructive px-3 pb-2">{error}</p>}
+    </div>
+  );
+}
+
+function DecodedPanel({ title, data, editable, editValue, onEditChange, editError }: DecodedPanelProps) {
   const [tab, setTab] = useState<TabType>("json");
   const json = JSON.stringify(data, null, 2);
 
@@ -135,7 +188,7 @@ function DecodedPanel({ title, data }: { title: string; data: Record<string, unk
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-2 py-0.5 capitalize transition-colors ${
+                className={`px-2 py-0.5 transition-colors ${
                   tab === t
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -148,8 +201,18 @@ function DecodedPanel({ title, data }: { title: string; data: Record<string, unk
           <CopyButton text={json} />
         </div>
       </div>
-      <div className="max-h-48 bg-background overflow-auto">
-        {tab === "json" ? <JsonPanel data={data} /> : <ClaimsPanel data={data} />}
+      <div className="bg-background overflow-auto">
+        {tab === "json" && editable ? (
+          <EditableJsonOverlay
+            value={editValue ?? json}
+            onChange={onEditChange ?? (() => {})}
+            error={editError}
+          />
+        ) : tab === "json" ? (
+          <JsonPanel data={data} />
+        ) : (
+          <ClaimsPanel data={data} />
+        )}
       </div>
     </div>
   );
@@ -158,11 +221,11 @@ function DecodedPanel({ title, data }: { title: string; data: Record<string, unk
 function ColoredToken({ token }: { token: string }) {
   const parts = token.split(".");
   if (parts.length !== 3) {
-    return <span className="text-foreground font-mono text-xs break-all">{token}</span>;
+    return <span className="text-foreground">{token}</span>;
   }
   const [h, p, s] = parts;
   return (
-    <span className="font-mono text-xs break-all">
+    <span>
       <span className="text-red-400">{h}</span>
       <span className="text-foreground">.</span>
       <span className="text-purple-400">{p}</span>
@@ -181,6 +244,9 @@ export function JwtTool() {
   const [secret, setSecret] = useState("");
   const [isBase64Secret, setIsBase64Secret] = useState(false);
   const [sigVerified, setSigVerified] = useState<boolean | null>(null);
+  const [payloadEditStr, setPayloadEditStr] = useState("");
+  const [payloadEditError, setPayloadEditError] = useState("");
+  const skipPayloadSync = useRef(false);
 
   function decode(val: string) {
     setInput(val);
@@ -188,6 +254,7 @@ export function JwtTool() {
     if (!val.trim()) {
       setParts(null);
       setError("");
+      if (!skipPayloadSync.current) setPayloadEditStr("");
       return;
     }
     try {
@@ -200,10 +267,55 @@ export function JwtTool() {
       const algorithm = typeof header["alg"] === "string" ? header["alg"] : "unknown";
       setParts({ header, payload, signature, isExpired, expiresAt, algorithm });
       setError("");
+      if (!skipPayloadSync.current) {
+        setPayloadEditStr(JSON.stringify(payload, null, 2));
+        setPayloadEditError("");
+      }
     } catch {
       setParts(null);
       setError("Invalid JWT");
     }
+  }
+
+  async function handlePayloadEdit(val: string) {
+    setPayloadEditStr(val);
+    setPayloadEditError("");
+
+    if (!parts) return;
+
+    let newPayload: Record<string, unknown>;
+    try {
+      newPayload = JSON.parse(val);
+    } catch {
+      setPayloadEditError("Invalid JSON");
+      return;
+    }
+
+    const headerB64url = base64urlEncode(JSON.stringify(parts.header));
+    const payloadB64url = base64urlEncode(JSON.stringify(newPayload));
+    const signingInput = `${headerB64url}.${payloadB64url}`;
+
+    let newToken: string;
+    if (parts.algorithm === "HS256" && secret) {
+      try {
+        const sig = await signHS256(signingInput, secret, isBase64Secret);
+        newToken = `${signingInput}.${sig}`;
+      } catch {
+        newToken = `${signingInput}.${parts.signature}`;
+      }
+    } else {
+      newToken = `${signingInput}.${parts.signature}`;
+    }
+
+    const exp = typeof newPayload["exp"] === "number" ? newPayload["exp"] : null;
+    const isExpired = exp !== null ? exp * 1000 < Date.now() : false;
+    const expiresAt = exp ? new Date(exp * 1000).toLocaleString() : null;
+
+    skipPayloadSync.current = true;
+    setParts((prev) => (prev ? { ...prev, payload: newPayload, isExpired, expiresAt } : null));
+    setInput(newToken);
+    setSigVerified(null);
+    skipPayloadSync.current = false;
   }
 
   useEffect(() => {
@@ -218,16 +330,16 @@ export function JwtTool() {
     verifyHS256(input, secret, isBase64Secret).then(setSigVerified);
   }, [secret, isBase64Secret, input, parts?.algorithm]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-4 overflow-auto lg:overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-4">
       {/* LEFT: encoded token */}
-      <div className="flex flex-col lg:w-2/5 gap-2 min-h-0">
+      <div className="flex flex-col lg:w-2/5 gap-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Encoded Token
           </span>
           <div className="flex items-center gap-1">
+            {input && <CopyButton text={input} />}
             <Button size="sm" variant="ghost" className="h-auto py-0 px-1.5"
               onClick={() => { decode(""); setSecret(""); }}>
               <RotateCcw className="h-3.5 w-3.5" />
@@ -240,18 +352,18 @@ export function JwtTool() {
         </div>
 
         {/* color overlay textarea */}
-        <div className="relative flex-1 min-h-48 rounded-md border border-border bg-muted/20 overflow-hidden">
-          <div className="absolute inset-0 p-3 pointer-events-none overflow-hidden whitespace-pre-wrap">
+        <div className="relative min-h-48 h-48 lg:h-64 rounded-md border border-border bg-muted/20 overflow-hidden">
+          <div className="absolute inset-0 p-3 font-mono text-xs leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
             {input ? (
               <ColoredToken token={input} />
             ) : (
-              <span className="font-mono text-xs text-muted-foreground">Paste JWT token here...</span>
+              <span className="text-muted-foreground">Paste JWT token here...</span>
             )}
           </div>
           <textarea
             value={input}
             onChange={(e) => decode(e.target.value)}
-            className="absolute inset-0 w-full h-full p-3 font-mono text-xs bg-transparent text-transparent caret-foreground resize-none outline-none"
+            className="absolute inset-0 w-full h-full p-3 font-mono text-xs leading-[1.5] tracking-normal whitespace-pre-wrap break-all bg-transparent text-transparent caret-foreground resize-none outline-none"
             spellCheck={false}
           />
         </div>
@@ -289,7 +401,7 @@ export function JwtTool() {
       </div>
 
       {/* RIGHT: decoded */}
-      <div className="flex flex-col flex-1 gap-3 overflow-auto min-h-0">
+      <div className="flex flex-col flex-1 gap-3">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Decoded
         </span>
@@ -297,7 +409,14 @@ export function JwtTool() {
         {parts ? (
           <>
             <DecodedPanel title="Header" data={parts.header} />
-            <DecodedPanel title="Payload" data={parts.payload} />
+            <DecodedPanel
+              title="Payload"
+              data={parts.payload}
+              editable
+              editValue={payloadEditStr}
+              onEditChange={handlePayloadEdit}
+              editError={payloadEditError}
+            />
 
             {/* signature verification */}
             <div className="border border-border rounded-md overflow-hidden">
@@ -327,6 +446,16 @@ export function JwtTool() {
                   disabled={parts.algorithm !== "HS256"}
                   className="w-full font-mono text-xs bg-muted/30 border border-border rounded px-2 py-1.5 outline-none focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed"
                 />
+                {parts.algorithm === "HS256" && secret && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Payload edits will be re-signed with this secret.
+                  </p>
+                )}
+                {parts.algorithm === "HS256" && !secret && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Without a secret, edited payload keeps the original signature (invalid).
+                  </p>
+                )}
               </div>
             </div>
           </>
