@@ -103,7 +103,7 @@ export function MermaidTool() {
   const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
 
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default" });
+    mermaid.initialize({ startOnLoad: false, theme: isDark ? "dark" : "default", suppressErrors: true });
     let active = true;
 
     if (!input.trim()) {
@@ -128,8 +128,8 @@ export function MermaidTool() {
         }
       })
       .catch((e) => {
+        document.querySelectorAll('[id^="dmermaid-"],[id^="mermaid-"]').forEach(el => el.remove());
         if (active) {
-          setSvg("");
           setError(e?.message ?? "Invalid diagram");
         }
       });

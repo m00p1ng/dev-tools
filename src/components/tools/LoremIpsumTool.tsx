@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { CopyButton } from "@/components/ui/copy-button";
-import { RotateCcw } from "lucide-react";
 import { LoremIpsum } from "lorem-ipsum";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,56 +14,65 @@ type Unit = "words" | "sentences" | "paragraphs";
 export function LoremIpsumTool() {
   const [unit, setUnit] = useState<Unit>("paragraphs");
   const [count, setCount] = useState(3);
-  const [output, setOutput] = useState("");
-  const [genKey, setGenKey] = useState(0);
+  const [countRaw, setCountRaw] = useState("3");
+  const [version, setVersion] = useState(0);
 
-  function generate() {
-    const result =
-      unit === "words"
-        ? lorem.generateWords(count)
-        : unit === "sentences"
-          ? lorem.generateSentences(count)
-          : lorem.generateParagraphs(count);
-    setOutput(result);
-    setGenKey((k) => k + 1);
-  }
+  const output = useMemo(() => {
+    void version;
+    if (unit === "words") return lorem.generateWords(count);
+    if (unit === "sentences") return lorem.generateSentences(count);
+    return lorem.generateParagraphs(count);
+  }, [unit, count, version]);
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1">
-          {(["words", "sentences", "paragraphs"] as Unit[]).map((u) => (
-            <Button key={u} size="sm" variant={unit === u ? "default" : "outline"} onClick={() => setUnit(u)}>
-              {u.charAt(0).toUpperCase() + u.slice(1)}
-            </Button>
-          ))}
+    <div className="flex h-full gap-4 min-h-0">
+      <div className="w-64 shrink-0 flex flex-col gap-4">
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">Unit</p>
+          <select
+            value={unit}
+            onChange={(e) => setUnit(e.target.value as Unit)}
+            className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="words">Words</option>
+            <option value="sentences">Sentences</option>
+            <option value="paragraphs">Paragraphs</option>
+          </select>
         </div>
 
-        <Input
-          type="number"
-          min={1}
-          max={100}
-          value={count}
-          onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value))))}
-          className="w-20 h-8 text-sm text-center"
-        />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium">Count</p>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={countRaw}
+              onChange={(e) => setCountRaw(e.target.value)}
+              onBlur={() => {
+                const n = Math.max(1, Math.min(100, Number(countRaw) || 1));
+                setCount(n);
+                setCountRaw(String(n));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              className="h-7 w-20 text-center font-mono text-sm"
+            />
+          </div>
+          <Slider min={1} max={100} step={1} value={[count]} onValueChange={([v]) => { setCount(v); setCountRaw(String(v)); }} />
+        </div>
 
-        <Button size="sm" onClick={generate}>Generate</Button>
-
-        {output && (
-          <>
-            <CopyButton text={output} withLabel />
-            <Button size="sm" variant="ghost" onClick={() => setOutput("")}>
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
-          </>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button size="sm" onClick={() => setVersion((v) => v + 1)}>Regenerate</Button>
+          {output && <CopyButton text={output} withLabel />}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={genKey}
-          className="flex-1"
+          key={version}
+          className="flex-1 min-h-0"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
@@ -72,8 +81,7 @@ export function LoremIpsumTool() {
           <Textarea
             readOnly
             value={output}
-            placeholder="Generated text will appear here..."
-            className="h-full resize-none text-sm"
+            className="h-full resize-none text-sm font-mono"
           />
         </motion.div>
       </AnimatePresence>

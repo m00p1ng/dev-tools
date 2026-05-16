@@ -89,7 +89,7 @@ export function UnixTimeTool() {
               { label: "Local Time", value: localTimeValue },
               { label: "UTC Time", value: parsedDate.utc().format("YYYY-MM-DD HH:mm:ss") + " UTC" },
               { label: "Relative", value: parsedDate.fromNow() },
-              { label: "ISO 8601", value: parsedDate.toISOString(), truncate: true, fullWidth: true },
+              { label: "ISO 8601", value: parsedDate.toISOString(), truncate: true },
             ].map((item) => (
               <motion.div
                 key={item.label}

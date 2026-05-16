@@ -4,8 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { CopyButton } from "@/components/ui/copy-button";
-import { Copy } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CHARSET = {
@@ -125,34 +123,32 @@ export function RandomStringTool() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="flex h-full gap-4 min-h-0">
+      <div className="w-64 shrink-0 flex flex-col gap-4">
         <SliderWithInput label="Length" value={length} min={1} max={256} onChange={setLength} />
         <SliderWithInput label="Count" value={count} min={1} max={50} onChange={setCount} />
-      </div>
 
-      <div className="flex flex-wrap gap-4">
-        {(Object.keys(options) as (keyof typeof options)[]).map((key) => (
-          <label key={key} className="flex items-center gap-2 text-sm capitalize cursor-pointer">
-            <Switch checked={options[key]} onCheckedChange={() => toggle(key)} />
-            {key}
-          </label>
-        ))}
-      </div>
+        <div className="flex flex-col gap-2">
+          {(Object.keys(options) as (keyof typeof options)[]).map((key) => (
+            <label key={key} className="flex items-center gap-2 text-sm capitalize cursor-pointer">
+              <Switch checked={options[key]} onCheckedChange={() => toggle(key)} />
+              {key}
+            </label>
+          ))}
+        </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button size="sm" onClick={generate} disabled={!charset}>Generate</Button>
-        {results.length > 1 && (
-          <Button size="sm" variant="outline" onClick={() => copyToClipboard(results.join("\n"))}>
-            <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
-          </Button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button size="sm" onClick={generate} disabled={!charset}>Generate</Button>
+          {results.length > 1 && (
+            <CopyButton text={results.join("\n")} withLabel />
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
           key={version}
-          className="flex-1 overflow-auto space-y-1"
+          className="flex-1 overflow-auto rounded-lg border border-border p-2 space-y-1"
           variants={listVariants}
           initial="hidden"
           animate="visible"

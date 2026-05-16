@@ -330,26 +330,25 @@ export function JwtTool() {
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       {/* LEFT: encoded token */}
-      <div className="flex flex-col lg:w-2/5 gap-2">
+      <div className="flex flex-col flex-1 gap-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Encoded Token
           </span>
           <div className="flex items-center gap-1">
-            {input && <CopyButton text={input} />}
-            <Button size="sm" variant="ghost" className="h-auto py-0 px-1.5"
-              onClick={() => { decode(""); setSecret(""); }}>
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
             <Button size="sm" variant="ghost" className="text-xs text-muted-foreground h-auto py-0"
               onClick={() => decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")}>
               Example
+            </Button>
+            <Button size="sm" variant="ghost" className="h-auto py-0 px-1.5"
+              onClick={() => { decode(""); setSecret(""); }}>
+              <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
         {/* color overlay textarea */}
-        <div className={cn("relative min-h-48 h-48 lg:h-64 rounded-md border border-border bg-muted/20 overflow-hidden transition-all duration-150",
+        <div className={cn("relative flex-1 min-h-48 rounded-md border border-border bg-muted/20 overflow-hidden transition-all duration-150",
           isDragging && "ring-2 ring-primary/50 bg-primary/5")}>
           <div className="absolute inset-0 p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
             {input ? (
@@ -365,6 +364,11 @@ export function JwtTool() {
             spellCheck={false}
             {...dropProps}
           />
+          {input && (
+            <div className="absolute bottom-2 right-2 z-10">
+              <CopyButton text={input} />
+            </div>
+          )}
         </div>
 
         {/* status indicators */}

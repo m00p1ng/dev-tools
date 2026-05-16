@@ -108,12 +108,12 @@ export function QrCodeTool() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">{tabButtons}</div>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setInput("")}>
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
                 <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
                   onClick={() => setInput("https://example.com")}>
                   Example
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setInput("")}>
+                  <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>

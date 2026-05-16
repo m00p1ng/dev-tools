@@ -1,14 +1,38 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { CopyButton } from "@/components/ui/copy-button";
-import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from "uuid";
-import { Copy, Plus, Minus, RotateCcw } from "lucide-react";
-import { copyToClipboard } from "@/lib/copy";
+import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7 } from "uuid";
+import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
 
-type UuidVersion = "v1" | "v4" | "v7";
+type Algorithm = "v1" | "v3" | "v4" | "v5" | "v7" | "ulid" | "objectid";
+
+const ALGORITHM_LABELS: Record<Algorithm, string> = {
+  v1: "UUID v1",
+  v3: "UUID v3",
+  v4: "UUID v4",
+  v5: "UUID v5",
+  v7: "UUID v7",
+  ulid: "ULID",
+  objectid: "ObjectId",
+};
+
+const NAMESPACES: Record<string, string> = {
+  DNS: uuidv5.DNS,
+  URL: uuidv5.URL,
+};
+
+let _oidCounter = Math.floor(Math.random() * 0xffffff);
+function generateObjectId(): string {
+  const ts = Math.floor(Date.now() / 1000).toString(16).padStart(8, "0");
+  const rnd = Array.from(crypto.getRandomValues(new Uint8Array(5)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  _oidCounter = (_oidCounter + 1) & 0xffffff;
+  return ts + rnd + _oidCounter.toString(16).padStart(6, "0");
+}
 
 const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
 const itemVariants = {
@@ -17,84 +41,129 @@ const itemVariants = {
 };
 
 export function UuidTool() {
-  const [version, setVersion] = useState<UuidVersion>("v4");
+  const [algorithm, setAlgorithm] = useState<Algorithm>("v4");
   const [count, setCount] = useState(1);
-  const [uuids, setUuids] = useState<string[]>([]);
-  const [genKey, setGenKey] = useState(0);
+  const [countRaw, setCountRaw] = useState("1");
+  const [namespace, setNamespace] = useState("DNS");
+  const [customNamespace, setCustomNamespace] = useState("");
+  const [name, setName] = useState("");
+  const [version, setVersion] = useState(0);
 
-  function generate() {
-    setUuids(
-      Array.from({ length: count }, () => {
-        if (version === "v1") return uuidv1();
-        if (version === "v7") return uuidv7();
-        return uuidv4();
-      })
-    );
-    setGenKey((k) => k + 1);
-  }
+  const needsNameInput = algorithm === "v3" || algorithm === "v5";
 
-  function copyAll() {
-    copyToClipboard(uuids.join("\n"));
-  }
+  const resolvedNamespace = namespace === "custom" ? customNamespace : (NAMESPACES[namespace] ?? uuidv5.DNS);
+
+  const results = useMemo(() => {
+    void version;
+    function generateOne(): string {
+      switch (algorithm) {
+        case "v1": return uuidv1();
+        case "v3": return uuidv3(name || " ", resolvedNamespace);
+        case "v4": return uuidv4();
+        case "v5": return uuidv5(name || " ", resolvedNamespace);
+        case "v7": return uuidv7();
+        case "ulid": return ulid();
+        case "objectid": return generateObjectId();
+      }
+    }
+    return Array.from({ length: count }, generateOne);
+  }, [algorithm, count, resolvedNamespace, name, version]);
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex flex-wrap gap-2 items-center">
-        <div className="flex gap-1">
-          {(["v1", "v4", "v7"] as UuidVersion[]).map((v) => (
-            <Button key={v} size="sm" variant={version === v ? "default" : "outline"}
-              onClick={() => setVersion(v)}>
-              {v.toUpperCase()}
-            </Button>
-          ))}
+    <div className="flex h-full gap-4 min-h-0">
+      <div className="w-64 shrink-0 flex flex-col gap-4">
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">Algorithm</p>
+          <select
+            value={algorithm}
+            onChange={(e) => setAlgorithm(e.target.value as Algorithm)}
+            className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {(Object.keys(ALGORITHM_LABELS) as Algorithm[]).map((a) => (
+              <option key={a} value={a}>{ALGORITHM_LABELS[a]}</option>
+            ))}
+          </select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button size="icon" variant="outline" className="h-8 w-8"
-            onClick={() => setCount(Math.max(1, count - 1))}>
-            <Minus className="h-3.5 w-3.5" />
-          </Button>
-          <Input
-            type="number"
-            min={1}
-            max={100}
-            value={count}
-            onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value))))}
-            className="w-16 text-center h-8 text-sm"
-          />
-          <Button size="icon" variant="outline" className="h-8 w-8"
-            onClick={() => setCount(Math.min(100, count + 1))}>
-            <Plus className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        <Button size="sm" onClick={generate}>Generate</Button>
-        {uuids.length > 0 && (
+        {needsNameInput && (
           <>
-            <Button size="sm" variant="outline" onClick={copyAll}>
-              <Copy className="h-3.5 w-3.5 mr-1" /> Copy All
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setUuids([])}>
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Namespace</p>
+              <select
+                value={namespace}
+                onChange={(e) => setNamespace(e.target.value)}
+                className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="DNS">DNS</option>
+                <option value="URL">URL</option>
+                <option value="custom">Custom</option>
+              </select>
+              {namespace === "custom" && (
+                <Input
+                  placeholder="Namespace UUID"
+                  value={customNamespace}
+                  onChange={(e) => setCustomNamespace(e.target.value)}
+                  className="h-8 text-sm font-mono"
+                />
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Name</p>
+              <Input
+                placeholder="Enter name…"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-8 text-sm"
+              />
+            </div>
           </>
         )}
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium">Count</p>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={countRaw}
+              onChange={(e) => setCountRaw(e.target.value)}
+              onBlur={() => {
+                const n = Math.max(1, Math.min(100, Number(countRaw) || 1));
+                setCount(n);
+                setCountRaw(String(n));
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              className="h-7 w-20 text-center font-mono text-sm"
+            />
+          </div>
+          <Slider min={1} max={100} step={1} value={[count]} onValueChange={([v]) => { setCount(v); setCountRaw(String(v)); }} />
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button size="sm" onClick={() => setVersion((v) => v + 1)}>Regenerate</Button>
+          {results.length > 1 && (
+            <CopyButton text={results.join("\n")} withLabel />
+          )}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={genKey}
-          className="flex-1 overflow-auto space-y-1"
+          key={version}
+          className="flex-1 overflow-auto rounded-lg border border-border p-2 space-y-1"
           variants={listVariants}
           initial="hidden"
           animate="visible"
         >
-          {uuids.map((id) => (
-            <motion.div key={id} variants={itemVariants}>
+          {results.map((id, i) => (
+            <motion.div key={i} variants={itemVariants}>
               <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
-                <Badge variant="outline" className="font-mono text-xs shrink-0">{version}</Badge>
-                <span className="font-mono text-sm flex-1 select-all">{id}</span>
-                <CopyButton text={id} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="font-mono text-sm flex-1 break-all select-all">{id}</span>
+                <CopyButton text={id} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </motion.div>
           ))}
