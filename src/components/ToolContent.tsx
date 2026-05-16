@@ -1,53 +1,54 @@
+import { lazy, Suspense, type ComponentType } from "react";
 import { TOOLS } from "@/tools";
 import { PlaceholderTool } from "./tools/PlaceholderTool";
-import { JsonFormatTool } from "./tools/JsonFormatTool";
-import { Base64Tool } from "./tools/Base64Tool";
-import { UrlEncodeTool } from "./tools/UrlEncodeTool";
-import { UrlParserTool } from "./tools/UrlParserTool";
-import { BackslashTool } from "./tools/BackslashTool";
-import { JwtTool } from "./tools/JwtTool";
-import { UnixTimeTool } from "./tools/UnixTimeTool";
-import { UuidTool } from "./tools/UuidTool";
-import { YamlToJsonTool } from "./tools/YamlToJsonTool";
-import { JsonToYamlTool } from "./tools/JsonToYamlTool";
-import { JsonToCsvTool } from "./tools/JsonToCsvTool";
-import { CsvToJsonTool } from "./tools/CsvToJsonTool";
-import { LoremIpsumTool } from "./tools/LoremIpsumTool";
-import { HashTool } from "./tools/HashTool";
-import { MermaidTool } from "./tools/MermaidTool";
-import { CronTool } from "./tools/CronTool";
-import { RandomStringTool } from "./tools/RandomStringTool";
-import { QrCodeTool } from "./tools/QrCodeTool";
 
-const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
-  "json-format": JsonFormatTool,
-  "base64": Base64Tool,
-  "url-encode": UrlEncodeTool,
-  "url-parser": UrlParserTool,
-  "backslash": BackslashTool,
-  "jwt": JwtTool,
-  "unix-time": UnixTimeTool,
-  "uuid": UuidTool,
-  "yaml-to-json": YamlToJsonTool,
-  "json-to-yaml": JsonToYamlTool,
-  "json-to-csv": JsonToCsvTool,
-  "csv-to-json": CsvToJsonTool,
-  "lorem-ipsum": LoremIpsumTool,
-  "hash": HashTool,
-  "mermaid": MermaidTool,
-  "cron": CronTool,
-  "random-string": RandomStringTool,
-  "qrcode": QrCodeTool,
+type ToolModule<TName extends string> = Record<TName, ComponentType>;
+
+function lazyTool<TName extends string>(
+  importer: () => Promise<ToolModule<TName>>,
+  exportName: TName,
+) {
+  return lazy(async () => ({ default: (await importer())[exportName] }));
+}
+
+const TOOL_COMPONENTS: Record<string, ComponentType> = {
+  "json-format": lazyTool(() => import("./tools/JsonFormatTool"), "JsonFormatTool"),
+  "base64": lazyTool(() => import("./tools/Base64Tool"), "Base64Tool"),
+  "url-encode": lazyTool(() => import("./tools/UrlEncodeTool"), "UrlEncodeTool"),
+  "url-parser": lazyTool(() => import("./tools/UrlParserTool"), "UrlParserTool"),
+  "backslash": lazyTool(() => import("./tools/BackslashTool"), "BackslashTool"),
+  "jwt": lazyTool(() => import("./tools/JwtTool"), "JwtTool"),
+  "unix-time": lazyTool(() => import("./tools/UnixTimeTool"), "UnixTimeTool"),
+  "uuid": lazyTool(() => import("./tools/UuidTool"), "UuidTool"),
+  "yaml-to-json": lazyTool(() => import("./tools/YamlToJsonTool"), "YamlToJsonTool"),
+  "json-to-yaml": lazyTool(() => import("./tools/JsonToYamlTool"), "JsonToYamlTool"),
+  "json-to-csv": lazyTool(() => import("./tools/JsonToCsvTool"), "JsonToCsvTool"),
+  "csv-to-json": lazyTool(() => import("./tools/CsvToJsonTool"), "CsvToJsonTool"),
+  "lorem-ipsum": lazyTool(() => import("./tools/LoremIpsumTool"), "LoremIpsumTool"),
+  "hash": lazyTool(() => import("./tools/HashTool"), "HashTool"),
+  "mermaid": lazyTool(() => import("./tools/MermaidTool"), "MermaidTool"),
+  "cron": lazyTool(() => import("./tools/CronTool"), "CronTool"),
+  "random-string": lazyTool(() => import("./tools/RandomStringTool"), "RandomStringTool"),
+  "qrcode": lazyTool(() => import("./tools/QrCodeTool"), "QrCodeTool"),
 };
 
 interface ToolContentProps {
   toolId: string;
 }
 
+function LoadingTool() {
+  return <div className="h-full rounded-md border border-border bg-muted/20" />;
+}
+
 export function ToolContent({ toolId }: ToolContentProps) {
   const Component = TOOL_COMPONENTS[toolId];
-  const tool = TOOLS.find((t) => t.id === toolId) ?? TOOLS[0];
+  const tool = TOOLS.find((item) => item.id === toolId) ?? TOOLS[0];
 
-  if (Component) return <Component />;
-  return <PlaceholderTool label={tool.label} />;
+  if (!Component) return <PlaceholderTool label={tool.label} />;
+
+  return (
+    <Suspense fallback={<LoadingTool />}>
+      <Component />
+    </Suspense>
+  );
 }

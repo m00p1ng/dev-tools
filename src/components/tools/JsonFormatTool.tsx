@@ -1,59 +1,30 @@
-import { useMemo, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "@/components/ui/code-block";
-import { ToolLayout, ToolPanels, ToolPane, ToolOutputPane, ToolToolbar } from "@/components/ui/tool-layout";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { useDropText } from "@/hooks/useDropText";
-import { cn } from "@/lib/utils";
-import { formatJson } from "@/lib/tool-logic/data";
+import { TextTransformTool } from "@/components/tools/shared/TextTransformTool";
+import { formatJson, type JsonFormatMeta } from "@/lib/tool-logic/data";
 
 type Mode = "format" | "minify";
 
 export function JsonFormatTool() {
-  const [input, setInput] = useLocalStorage("tool:json-format", "");
-  const [mode, setMode] = useState<Mode>("format");
-  const { isDragging, dropProps } = useDropText(setInput);
-
-  const { output, error, repaired } = useMemo(() => {
-    const result = formatJson(input, mode);
-    return result.ok
-      ? { output: result.value, error: "", repaired: result.meta.repaired }
-      : { output: "", error: result.error, repaired: false };
-  }, [input, mode]);
-
   return (
-    <ToolLayout>
-      {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
-      {repaired && <Badge variant="outline" className="self-start text-xs text-yellow-600 border-yellow-400">Auto-repaired</Badge>}
-      <ToolPanels>
-        <ToolPane>
-          <ToolToolbar
-            left={
-              <>
-                <Button size="sm" variant={mode === "format" ? "default" : "outline"} onClick={() => setMode("format")}>Format</Button>
-                <Button size="sm" variant={mode === "minify" ? "default" : "outline"} onClick={() => setMode("minify")}>Minify</Button>
-              </>
-            }
-            onExample={() => setInput('{"name":"Alice","age":30,"active":true,"address":{"city":"Bangkok"}}')}
-            onClear={() => setInput("")}
-          />
-          <Textarea
-            placeholder="Paste JSON here… or drop a file"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
-              isDragging && "ring-2 ring-primary/50 bg-primary/5")}
-            {...dropProps}
-          />
-        </ToolPane>
-        <ToolOutputPane>
-          <div className="flex-1 min-h-0">
-            <CodeBlock code={output} language="json" placeholder="Output will appear here..." />
-          </div>
-        </ToolOutputPane>
-      </ToolPanels>
-    </ToolLayout>
+    <TextTransformTool<Mode, JsonFormatMeta>
+      storageKey="tool:json-format"
+      initialMode="format"
+      modes={[
+        { value: "format", label: "Format" },
+        { value: "minify", label: "Minify" },
+      ]}
+      inputPlaceholder="Paste JSON here... or drop a file"
+      outputPlaceholder="Output will appear here..."
+      example={'{"name":"Alice","age":30,"active":true,"address":{"city":"Bangkok"}}'}
+      transform={formatJson}
+      outputLanguage="json"
+      renderMeta={(meta) =>
+        meta.repaired ? (
+          <Badge variant="outline" className="self-start border-yellow-400 text-xs text-yellow-600">
+            Auto-repaired
+          </Badge>
+        ) : null
+      }
+    />
   );
 }

@@ -5,17 +5,60 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { TOOLS } from "@/tools";
-import * as LucideIcons from "lucide-react";
-import type { LucideProps } from "lucide-react";
-import { Search, Star, Settings, RotateCcw } from "lucide-react";
+import {
+  AlignLeft,
+  Binary,
+  Braces,
+  Clock,
+  Code,
+  FileCode,
+  FileJson,
+  Fingerprint,
+  GitFork,
+  Globe,
+  Hash,
+  KeyRound,
+  Link,
+  QrCode,
+  RotateCcw,
+  Search,
+  Settings,
+  Shuffle,
+  Star,
+  Table,
+  TableProperties,
+  Timer,
+  type LucideProps,
+} from "lucide-react";
 
 interface SidebarProps {
   activeTool: string;
   onSelect: (id: string) => void;
 }
 
+const TOOL_ICONS: Record<string, React.FC<LucideProps>> = {
+  AlignLeft,
+  Binary,
+  Braces,
+  Clock,
+  Code,
+  FileCode,
+  FileJson,
+  Fingerprint,
+  GitFork,
+  Globe,
+  Hash,
+  KeyRound,
+  Link,
+  QrCode,
+  Shuffle,
+  Table,
+  TableProperties,
+  Timer,
+};
+
 function ToolIcon({ name, ...props }: { name: string } & LucideProps) {
-  const Icon = (LucideIcons as unknown as Record<string, React.FC<LucideProps>>)[name];
+  const Icon = TOOL_ICONS[name];
   if (!Icon) return null;
   return <Icon {...props} />;
 }
