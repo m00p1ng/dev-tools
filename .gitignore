@@ -26,3 +26,5 @@ dist-ssr
 .playwright-mcp
 .vitest-attachments
 __screenshots__
+coverage
+.coverage-tmp

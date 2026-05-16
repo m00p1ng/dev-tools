@@ -2,7 +2,7 @@ import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "url";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -13,11 +13,22 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.browser.test.{ts,tsx}"],
+    setupFiles: ["src/test-setup.ts"],
     browser: {
       enabled: true,
       headless: true,
       provider: playwright(),
       instances: [{ browser: "chromium" }],
+    },
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        ...(configDefaults.coverage?.exclude ?? []),
+        "**/*.test.{ts,tsx}",
+        "src/test-setup.ts",
+      ],
     },
   },
 });

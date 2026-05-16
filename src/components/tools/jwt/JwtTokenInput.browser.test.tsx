@@ -78,6 +78,41 @@ test("renders validation, signature, and expiration statuses", async () => {
   await expect.element(screen.getByText("Expired: 1/1/1970, 7:00:00 AM")).toBeVisible();
 });
 
+test("renders signature verified status", async () => {
+  const screen = await render(
+    <JwtTokenInput
+      input="header.payload.signature"
+      error=""
+      parts={parts}
+      sigVerified={true}
+      isDragging={false}
+      dropProps={{}}
+      onChange={vi.fn()}
+      onClear={vi.fn()}
+    />,
+  );
+
+  await expect.element(screen.getByText("Signature Verified")).toBeVisible();
+});
+
+test("renders expired status without date when expiresAt is null", async () => {
+  const expiredParts = { ...parts, isExpired: true, expiresAt: null };
+  const screen = await render(
+    <JwtTokenInput
+      input="header.payload.signature"
+      error=""
+      parts={expiredParts}
+      sigVerified={null}
+      isDragging={false}
+      dropProps={{}}
+      onChange={vi.fn()}
+      onClear={vi.fn()}
+    />,
+  );
+
+  await expect.element(screen.getByText("Expired")).toBeVisible();
+});
+
 test("renders decode errors instead of valid statuses", async () => {
   const screen = await render(
     <JwtTokenInput

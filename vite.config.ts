@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
+export default defineConfig(() => ({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -15,6 +15,16 @@ export default defineConfig(async () => ({
   },
   test: {
     exclude: [...configDefaults.exclude, "**/*.browser.test.{ts,tsx}"],
+    coverage: {
+      provider: "istanbul" as const,
+      reporter: ["text", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        ...(configDefaults.coverage?.exclude ?? []),
+        "**/*.test.{ts,tsx}",
+        "src/test-setup.ts",
+      ],
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

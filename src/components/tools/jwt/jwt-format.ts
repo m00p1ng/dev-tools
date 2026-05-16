@@ -17,7 +17,7 @@ export function syntaxHighlight(json: string): string {
   );
 }
 
-export function getClaimDisplay(key: string, value: unknown): string | null {
+export function getClaimDisplay(key: string, value: unknown): string {
   if ((key === "exp" || key === "nbf" || key === "iat") && typeof value === "number") {
     return new Date(value * 1000).toLocaleString();
   }

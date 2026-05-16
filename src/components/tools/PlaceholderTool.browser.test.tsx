@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
-import { PlaceholderTool } from "./tools/PlaceholderTool";
+import { PlaceholderTool } from "./PlaceholderTool";
 
 test("renders label with coming soon text", async () => {
   const screen = await render(<PlaceholderTool label="My Tool" />);
