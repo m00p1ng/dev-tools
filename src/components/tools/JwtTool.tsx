@@ -1,184 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { CopyButton } from "@/components/ui/copy-button";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useEffect, useRef, useState } from "react";
+import { DecodedPanel } from "@/components/tools/jwt/DecodedJwtPanels";
+import { JwtTokenInput } from "@/components/tools/jwt/JwtTokenInput";
+import { SignatureVerification } from "@/components/tools/jwt/SignatureVerification";
 import { useDropText } from "@/hooks/useDropText";
-import { RotateCcw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  base64urlEncode,
-  decodeJwtToken,
-  signHS256,
-  verifyHS256,
-  type JwtParts,
-} from "@/lib/tool-logic/security";
-
-// ---- helpers ----
-
-function syntaxHighlight(json: string): string {
-  const escaped = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return escaped.replace(
-    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+\.?\d*(?:[eE][+-]?\d+)?)/g,
-    (match) => {
-      let cls = "text-orange-400";
-      if (/^"/.test(match)) {
-        cls = /:$/.test(match) ? "text-blue-300" : "text-green-400";
-      } else if (/true|false/.test(match)) {
-        cls = "text-purple-400";
-      } else if (match === "null") {
-        cls = "text-gray-400";
-      }
-      return `<span class="${cls}">${match}</span>`;
-    }
-  );
-}
-
-const CLAIM_LABELS: Record<string, string> = {
-  iss: "Issuer",
-  sub: "Subject",
-  aud: "Audience",
-  exp: "Expires At",
-  nbf: "Not Before",
-  iat: "Issued At",
-  jti: "JWT ID",
-};
-
-const TIME_CLAIMS = new Set(["exp", "nbf", "iat"]);
-
-// ---- sub-components ----
-
-function JsonPanel({ data }: { data: object }) {
-  const json = JSON.stringify(data, null, 2);
-  return (
-    <pre
-      className="font-mono text-sm p-3 overflow-auto leading-relaxed"
-      dangerouslySetInnerHTML={{ __html: syntaxHighlight(json) }}
-    />
-  );
-}
-
-function ClaimsPanel({ data }: { data: Record<string, unknown> }) {
-  return (
-    <div className="p-3 space-y-2 font-mono text-sm overflow-auto">
-      {Object.entries(data).map(([key, val]) => {
-        const label = CLAIM_LABELS[key] ?? key;
-        const display =
-          TIME_CLAIMS.has(key) && typeof val === "number"
-            ? new Date(val * 1000).toLocaleString()
-            : JSON.stringify(val);
-        return (
-          <div key={key} className="flex gap-2">
-            <span className="text-blue-300 min-w-[100px] shrink-0">{label}</span>
-            <span className="text-green-400 break-all">{display}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-type TabType = "json" | "claims";
-
-interface DecodedPanelProps {
-  title: string;
-  data: Record<string, unknown>;
-  editable?: boolean;
-  editValue?: string;
-  onEditChange?: (val: string) => void;
-  editError?: string;
-}
-
-const OVERLAY_SHARED = "font-mono text-sm p-3 whitespace-pre-wrap break-words leading-[1.5] tracking-normal";
-
-function EditableJsonOverlay({ value, onChange, error }: {
-  value: string;
-  onChange: (v: string) => void;
-  error?: string;
-}) {
-  return (
-    <div>
-      <div className="grid min-h-[80px]">
-        <pre
-          aria-hidden
-          className={`[grid-area:1/1] ${OVERLAY_SHARED} pointer-events-none select-none`}
-          dangerouslySetInnerHTML={{ __html: syntaxHighlight(value) + "\n" }}
-        />
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`[grid-area:1/1] ${OVERLAY_SHARED} bg-transparent text-transparent caret-foreground resize-none outline-none`}
-          spellCheck={false}
-        />
-      </div>
-      {error && <p className="text-xs text-destructive px-3 pb-2">{error}</p>}
-    </div>
-  );
-}
-
-function DecodedPanel({ title, data, editable, editValue, onEditChange, editError }: DecodedPanelProps) {
-  const [tab, setTab] = useState<TabType>("json");
-  const json = JSON.stringify(data, null, 2);
-
-  return (
-    <div className="border border-border rounded-md overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40">
-        <span className="text-xs font-semibold text-muted-foreground">{title}</span>
-        <div className="flex items-center gap-1">
-          <div className="flex text-xs rounded overflow-hidden border border-border">
-            {(["json", "claims"] as TabType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-2 py-0.5 transition-colors ${
-                  tab === t
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t === "json" ? "JSON" : "Claims"}
-              </button>
-            ))}
-          </div>
-          <CopyButton text={json} />
-        </div>
-      </div>
-      <div className="bg-background overflow-auto">
-        {tab === "json" && editable ? (
-          <EditableJsonOverlay
-            value={editValue ?? json}
-            onChange={onEditChange ?? (() => {})}
-            error={editError}
-          />
-        ) : tab === "json" ? (
-          <JsonPanel data={data} />
-        ) : (
-          <ClaimsPanel data={data} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ColoredToken({ token }: { token: string }) {
-  const parts = token.split(".");
-  if (parts.length !== 3) {
-    return <span className="text-foreground">{token}</span>;
-  }
-  const [h, p, s] = parts;
-  return (
-    <span>
-      <span className="text-red-400">{h}</span>
-      <span className="text-foreground">.</span>
-      <span className="text-purple-400">{p}</span>
-      <span className="text-foreground">.</span>
-      <span className="text-cyan-400">{s}</span>
-    </span>
-  );
-}
-
-// ---- main ----
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { base64urlEncode, decodeJwtToken, signHS256, verifyHS256, type JwtParts } from "@/lib/tool-logic/security";
 
 export function JwtTool() {
   const [input, setInput] = useLocalStorage("tool:jwt", "");
@@ -202,18 +28,20 @@ export function JwtTool() {
       if (!skipPayloadSync.current) setPayloadEditStr("");
       return;
     }
+
     const result = decodeJwtToken(val);
-    if (result.ok) {
-      const { payload } = result.value;
-      setParts(result.value);
-      setError("");
-      if (!skipPayloadSync.current) {
-        setPayloadEditStr(JSON.stringify(payload, null, 2));
-        setPayloadEditError("");
-      }
-    } else {
+    if (!result.ok) {
       setParts(null);
       setError(result.error);
+      return;
+    }
+
+    const { payload } = result.value;
+    setParts(result.value);
+    setError("");
+    if (!skipPayloadSync.current) {
+      setPayloadEditStr(JSON.stringify(payload, null, 2));
+      setPayloadEditError("");
     }
   }
 
@@ -234,20 +62,12 @@ export function JwtTool() {
     const headerB64url = base64urlEncode(JSON.stringify(parts.header));
     const payloadB64url = base64urlEncode(JSON.stringify(newPayload));
     const signingInput = `${headerB64url}.${payloadB64url}`;
+    const shouldResign = parts.algorithm === "HS256" && secret;
+    const newToken = shouldResign
+      ? `${signingInput}.${await signEditedPayload(signingInput)}`
+      : `${signingInput}.${parts.signature}`;
 
-    let newToken: string;
-    if (parts.algorithm === "HS256" && secret) {
-      try {
-        const sig = await signHS256(signingInput, secret, isBase64Secret);
-        newToken = `${signingInput}.${sig}`;
-      } catch {
-        newToken = `${signingInput}.${parts.signature}`;
-      }
-    } else {
-      newToken = `${signingInput}.${parts.signature}`;
-    }
-
-    const exp = typeof newPayload["exp"] === "number" ? newPayload["exp"] : null;
+    const exp = typeof newPayload.exp === "number" ? newPayload.exp : null;
     const isExpired = exp !== null ? exp * 1000 < Date.now() : false;
     const expiresAt = exp ? new Date(exp * 1000).toLocaleString() : null;
 
@@ -258,23 +78,39 @@ export function JwtTool() {
     skipPayloadSync.current = false;
   }
 
-  useEffect(() => {
-    if (input) {
-      const timer = setTimeout(() => decode(input), 0);
-      return () => clearTimeout(timer);
+  async function signEditedPayload(signingInput: string) {
+    try {
+      return await signHS256(signingInput, secret, isBase64Secret);
+    } catch {
+      return parts?.signature ?? "";
     }
+  }
+
+  function clearToken() {
+    decode("");
+    setSecret("");
+  }
+
+  useEffect(() => {
+    if (!input) return;
+
+    const timer = setTimeout(() => decode(input), 0);
+    return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let active = true;
-    const verify = async () => {
+
+    async function verify() {
       if (!parts || parts.algorithm !== "HS256" || !secret) {
         if (active) setSigVerified(null);
         return;
       }
+
       const result = await verifyHS256(input, secret, isBase64Secret);
       if (active) setSigVerified(result);
-    };
+    }
+
     verify();
     return () => {
       active = false;
@@ -283,85 +119,19 @@ export function JwtTool() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-4">
-      {/* LEFT: encoded token */}
-      <div className="flex flex-col flex-1 gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Encoded Token
-          </span>
-          <div className="flex items-center gap-1">
-            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground h-auto py-0"
-              onClick={() => decode("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")}>
-              Example
-            </Button>
-            <Button size="sm" variant="ghost" className="h-auto py-0 px-1.5"
-              onClick={() => { decode(""); setSecret(""); }}>
-              <RotateCcw className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
+      <JwtTokenInput
+        input={input}
+        error={error}
+        parts={parts}
+        sigVerified={sigVerified}
+        isDragging={isDragging}
+        dropProps={dropProps}
+        onChange={decode}
+        onClear={clearToken}
+      />
 
-        {/* color overlay textarea */}
-        <div className={cn("relative flex-1 min-h-48 rounded-md border border-border bg-muted/20 overflow-hidden transition-all duration-150",
-          isDragging && "ring-2 ring-primary/50 bg-primary/5")}>
-          <div className="absolute inset-0 p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all pointer-events-none overflow-hidden">
-            {input ? (
-              <ColoredToken token={input} />
-            ) : (
-              <span className="text-muted-foreground">Paste JWT token here… or drop a file</span>
-            )}
-          </div>
-          <textarea
-            value={input}
-            onChange={(e) => decode(e.target.value)}
-            className="absolute inset-0 w-full h-full p-3 font-mono text-sm leading-[1.5] tracking-normal whitespace-pre-wrap break-all bg-transparent text-transparent caret-foreground resize-none outline-none"
-            spellCheck={false}
-            {...dropProps}
-          />
-          {input && (
-            <div className="absolute bottom-2 right-2 z-10">
-              <CopyButton text={input} />
-            </div>
-          )}
-        </div>
-
-        {/* status indicators */}
-        <div className="flex flex-col gap-1 pb-1">
-          {error ? (
-            <div className="flex items-center gap-1.5 text-xs text-destructive">
-              <span>✗</span><span>{error}</span>
-            </div>
-          ) : parts ? (
-            <>
-              <div className="flex items-center gap-1.5 text-xs text-green-500">
-                <span>✓</span><span>Valid JWT</span>
-              </div>
-              {sigVerified === true && (
-                <div className="flex items-center gap-1.5 text-xs text-green-500">
-                  <span>✓</span><span>Signature Verified</span>
-                </div>
-              )}
-              {sigVerified === false && (
-                <div className="flex items-center gap-1.5 text-xs text-destructive">
-                  <span>✗</span><span>Invalid Signature</span>
-                </div>
-              )}
-              {parts.isExpired && (
-                <div className="flex items-center gap-1.5 text-xs text-orange-500">
-                  <span>⚠</span>
-                  <span>Expired{parts.expiresAt ? `: ${parts.expiresAt}` : ""}</span>
-                </div>
-              )}
-            </>
-          ) : null}
-        </div>
-      </div>
-
-      {/* RIGHT: decoded */}
       <div className="flex flex-col flex-1 gap-3">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Decoded
-        </span>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Decoded</span>
 
         {parts ? (
           <>
@@ -374,47 +144,13 @@ export function JwtTool() {
               onEditChange={handlePayloadEdit}
               editError={payloadEditError}
             />
-
-            {/* signature verification */}
-            <div className="border border-border rounded-md overflow-hidden">
-              <div className="px-3 py-1.5 border-b border-border bg-muted/40 flex items-center gap-2">
-                <span className="text-xs font-semibold text-muted-foreground">
-                  Signature Verification
-                </span>
-                {parts.algorithm !== "HS256" && (
-                  <Badge variant="outline" className="text-orange-400 border-orange-400 text-[10px] py-0 h-4">
-                    HS256 only
-                  </Badge>
-                )}
-              </div>
-              <div className="p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Secret</span>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <span className="text-xs text-muted-foreground">BASE64URL ENCODED</span>
-                    <Switch size="sm" checked={isBase64Secret} onCheckedChange={setIsBase64Secret} />
-                  </label>
-                </div>
-                <input
-                  type="text"
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  placeholder="your-256-bit-secret"
-                  disabled={parts.algorithm !== "HS256"}
-                  className="w-full font-mono text-xs bg-muted/30 border border-border rounded px-2 py-1.5 outline-none focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-                {parts.algorithm === "HS256" && secret && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Payload edits will be re-signed with this secret.
-                  </p>
-                )}
-                {parts.algorithm === "HS256" && !secret && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Without a secret, edited payload keeps the original signature (invalid).
-                  </p>
-                )}
-              </div>
-            </div>
+            <SignatureVerification
+              parts={parts}
+              secret={secret}
+              isBase64Secret={isBase64Secret}
+              onSecretChange={setSecret}
+              onBase64SecretChange={setIsBase64Secret}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground">
@@ -425,3 +161,4 @@ export function JwtTool() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "url";
@@ -12,6 +12,9 @@ export default defineConfig(async () => ({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+  },
+  test: {
+    exclude: [...configDefaults.exclude, "**/*.browser.test.{ts,tsx}"],
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

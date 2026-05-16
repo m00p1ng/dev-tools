@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint src --max-warnings 0",
     "test": "vitest run",
+    "test:ui": "vitest run --config vitest.browser.config.ts",
     "test:watch": "vitest",
     "tauri": "tauri"
   },
@@ -57,14 +58,17 @@
     "@types/react-dom": "^19.1.6",
     "@types/uuid": "^11.0.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/browser-playwright": "^4.1.6",
     "eslint": "^10.4.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "playwright": "^1.60.0",
     "tailwindcss": "^4.3.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.59.3",
     "vite": "^7.0.4",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "vitest-browser-react": "^2.2.0"
   }
 }
