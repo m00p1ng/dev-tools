@@ -40,3 +40,10 @@ test("subsequent updates overwrite previous value", async () => {
   await expect.element(screen.getByText("val:two")).toBeVisible();
   expect(JSON.parse(localStorage.getItem("seq-key")!)).toBe("two");
 });
+
+test("falls back to initial value when stored value is invalid JSON", async () => {
+  // Store corrupted JSON — JSON.parse will throw, catch returns initialValue
+  localStorage.setItem("bad-json-key", "not-valid-json{{{");
+  const screen = await render(<Fixture storageKey="bad-json-key" initial="fallback" />);
+  await expect.element(screen.getByText("val:fallback")).toBeVisible();
+});

@@ -7,7 +7,8 @@ describe("cn", () => {
   });
 
   it("drops falsy values", () => {
-    expect(cn("foo", false && "bar", undefined, null, "baz")).toBe("foo baz");
+    const includeBar = Boolean("");
+    expect(cn("foo", includeBar && "bar", undefined, null, "baz")).toBe("foo baz");
   });
 
   it("resolves tailwind conflicts — last wins", () => {

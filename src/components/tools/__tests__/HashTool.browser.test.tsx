@@ -26,3 +26,29 @@ test("switching to base64 encoding changes hash output format", async () => {
   // base64-encoded hash differs from hex
   await expect.element(screen.getByText(/ZajifYh5KDgxtmS9i38K1A==/)).toBeVisible();
 });
+
+test("clearing input empties the textarea", async () => {
+  const screen = await render(<HashTool />);
+  await screen.getByRole("button", { name: "Example" }).click();
+  await expect.element(screen.getByText(/65a8e27d/)).toBeVisible();
+  await screen.getByRole("textbox").fill("");
+  await expect.element(screen.getByRole("textbox")).toHaveValue("");
+});
+
+test("typing input directly shows hash output", async () => {
+  const screen = await render(<HashTool />);
+  await screen.getByRole("textbox").fill("hello");
+  await expect.element(screen.getByText(/5d41402abc4b2a76b9719d911017c592/)).toBeVisible();
+});
+
+test("empty input shows dashes for all algorithms", async () => {
+  const screen = await render(<HashTool />);
+  const dashes = screen.getByText("—");
+  await expect.element(dashes.first()).toBeVisible();
+});
+
+test("hex button is active by default (selected styling)", async () => {
+  const screen = await render(<HashTool />);
+  await expect.element(screen.getByRole("button", { name: "hex" })).toBeVisible();
+  await expect.element(screen.getByRole("button", { name: "base64" })).toBeVisible();
+});

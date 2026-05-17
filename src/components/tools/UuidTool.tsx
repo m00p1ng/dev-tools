@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
-import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7 } from "uuid";
+import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7, validate as isUuid } from "uuid";
 import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
 import { clampNumber, generateObjectId } from "@/lib/tool-logic/generators";
@@ -43,7 +43,9 @@ export function UuidTool() {
 
   const needsNameInput = algorithm === "v3" || algorithm === "v5";
 
-  const resolvedNamespace = namespace === "custom" ? customNamespace : (NAMESPACES[namespace] ?? uuidv5.DNS);
+  const resolvedNamespace = namespace === "custom"
+    ? (isUuid(customNamespace) ? customNamespace : uuidv5.DNS)
+    : (NAMESPACES[namespace] ?? uuidv5.DNS);
 
   const results = useMemo(() => {
     void version;

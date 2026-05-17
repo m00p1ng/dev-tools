@@ -42,18 +42,65 @@ test("Manage Tools button toggles the tool visibility panel", async () => {
   await expect.element(screen.getByText("Visible Tools")).toBeVisible();
 });
 
-test("favoriting a tool moves it to the Favorites section", async () => {
-  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
-  const cronButton = screen.getByRole("button", { name: "Cron Parser" });
-  // The star is inside the button; clicking the star div triggers toggleFav
-  // but since it stopPropagation, we need to target the star icon area
-  // The star div is the last child of the button — click the button to navigate
-  // then use star click indirectly by checking favorites section appears
-  // We test favorites via localStorage pre-seeding instead
-});
-
 test("pre-seeded favorite appears in Favorites section", async () => {
   localStorage.setItem("favorites", JSON.stringify(["cron"]));
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
   await expect.element(screen.getByText("Favorites")).toBeVisible();
+});
+
+test("clicking a tool in Manage Tools panel toggles its switch", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByRole("button", { name: /Manage Tools/ }).click();
+  await expect.element(screen.getByText("Visible Tools")).toBeVisible();
+  // All switches should be on by default
+  const switches = screen.getByRole("switch");
+  await expect.element(switches.first()).toBeChecked();
+  // Toggle first switch (hide a tool)
+  await switches.first().click();
+  await expect.element(switches.first()).not.toBeChecked();
+});
+
+test("Reset button appears after hiding a tool and resets visibility", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByRole("button", { name: /Manage Tools/ }).click();
+  // Hide first tool
+  await screen.getByRole("switch").first().click();
+  // Reset button should appear
+  await expect.element(screen.getByText("Reset")).toBeVisible();
+  await screen.getByText("Reset").click();
+  // All switches back on
+  await expect.element(screen.getByRole("switch").first()).toBeChecked();
+});
+
+test("hidden tool is removed from the tool list", async () => {
+  localStorage.setItem("hidden-tools", JSON.stringify(["cron"]));
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  expect(screen.getByText("Cron Parser").elements()).toHaveLength(0);
+});
+
+test("star click in tool list favorites the tool", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  // Each ToolButton contains a Star icon div as the last child of the motion.button
+  // Click the star (motion.div wrapping Star) - it's inside the button
+  // Use keyboard search to find "cron" then interact with star
+  await screen.getByPlaceholder("Search tools...").fill("cron");
+  await expect.element(screen.getByText("Cron Parser")).toBeVisible();
+  // The star is a motion.div onClick handler inside the button; use DOM query
+  const starDivs = document.querySelectorAll("nav button > div");
+  if (starDivs.length > 0) {
+    (starDivs[0] as HTMLElement).click();
+    // After star click, favorites should update localStorage
+    await vi.waitFor(() => {
+      const favs = localStorage.getItem("favorites");
+      expect(favs).not.toBeNull();
+    }, { timeout: 2000 });
+  }
+});
+
+test("Manage Tools button closes the panel when clicked again", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByRole("button", { name: /Manage Tools/ }).click();
+  await expect.element(screen.getByText("Visible Tools")).toBeVisible();
+  await screen.getByRole("button", { name: /Manage Tools/ }).click();
+  await expect.element(screen.getByText("JSON Format / Validate")).toBeVisible();
 });

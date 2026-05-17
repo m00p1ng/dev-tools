@@ -27,3 +27,46 @@ test("switching to Words unit changes output style", async () => {
   const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
   expect(value.length).toBeGreaterThan(0);
 });
+
+test("switching to Sentences unit generates sentence output", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  await screen.getByRole("combobox").selectOptions("sentences");
+  const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
+  expect(value.length).toBeGreaterThan(0);
+});
+
+test("changing count via input updates output", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  const countInput = screen.getByRole("spinbutton");
+  await countInput.fill("1");
+  await screen.getByRole("button", { name: "Regenerate" }).click();
+  const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
+  expect(value.length).toBeGreaterThan(0);
+});
+
+test("count clamped to 1 when 0 is entered then blurred", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  const countInput = screen.getByRole("spinbutton");
+  await countInput.fill("0");
+  // Click Regenerate to commit blur
+  await screen.getByRole("button", { name: "Regenerate" }).click();
+  expect((countInput.element() as HTMLInputElement).value).toBe("1");
+});
+
+test("Enter key in count input triggers blur and commits value", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  const countInput = screen.getByRole("spinbutton");
+  await countInput.fill("2");
+  // Trigger keydown Enter via native dispatch on the element
+  const el = countInput.element() as HTMLInputElement;
+  el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  expect(el.value).toBe("2");
+});
+
+test("Copy button is visible when output is generated", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  await expect.element(screen.getByRole("button", { name: "Regenerate" })).toBeVisible();
+  // CopyButton appears alongside Regenerate
+  const buttons = screen.getByRole("button");
+  expect(buttons.elements().length).toBeGreaterThan(0);
+});

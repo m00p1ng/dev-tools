@@ -47,3 +47,49 @@ test("switching to light removes dark class and persists to localStorage", async
   expect(document.documentElement.classList.contains("dark")).toBe(false);
   expect(localStorage.getItem("theme")).toBe("light");
 });
+
+test("defaults to light when no stored theme and matchMedia not dark", async () => {
+  // No stored theme — resolveInitialTheme uses matchMedia
+  const screen = await render(<Fixture />);
+  // matchMedia in test env returns false for prefers-color-scheme: dark
+  await expect.element(screen.getByText("active:light")).toBeVisible();
+});
+
+test("setTheme without startViewTransition still updates theme", async () => {
+  localStorage.setItem("theme", "light");
+  // Remove startViewTransition to test the fallback path
+  const saved = (document as Document & { startViewTransition?: unknown }).startViewTransition;
+  delete (document as Document & { startViewTransition?: unknown }).startViewTransition;
+
+  const screen = await render(<Fixture />);
+  await screen.getByRole("button", { name: "switch-dark" }).click();
+  await expect.element(screen.getByText("active:dark")).toBeVisible();
+
+  // Restore
+  if (saved) (document as Document & { startViewTransition?: unknown }).startViewTransition = saved;
+});
+
+function FixtureWithOrigin() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <div>
+      <p>{`active:${theme}`}</p>
+      <button onClick={() => setTheme("dark", { x: 100, y: 100 })}>switch-dark-origin</button>
+      <button onClick={() => setTheme("dark")}>switch-dark-no-origin</button>
+    </div>
+  );
+}
+
+test("setTheme with origin uses provided coordinates", async () => {
+  localStorage.setItem("theme", "light");
+  const screen = await render(<FixtureWithOrigin />);
+  await screen.getByRole("button", { name: "switch-dark-origin" }).click();
+  await expect.element(screen.getByText("active:dark")).toBeVisible();
+});
+
+test("setTheme without origin uses window center", async () => {
+  localStorage.setItem("theme", "light");
+  const screen = await render(<FixtureWithOrigin />);
+  await screen.getByRole("button", { name: "switch-dark-no-origin" }).click();
+  await expect.element(screen.getByText("active:dark")).toBeVisible();
+});

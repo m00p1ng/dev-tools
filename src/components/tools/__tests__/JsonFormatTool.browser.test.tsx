@@ -42,3 +42,10 @@ test("valid JSON does not show Auto-repaired badge", async () => {
   await screen.getByRole("button", { name: "Example" }).click();
   expect(screen.getByText("Auto-repaired").query()).toBeNull();
 });
+
+test("repairable JSON shows Auto-repaired badge", async () => {
+  const screen = await render(<JsonFormatTool />);
+  // Trailing comma is a common auto-repaired case
+  await screen.getByPlaceholder("Paste JSON here... or drop a file").fill('{"a":1,}');
+  await expect.element(screen.getByText("Auto-repaired")).toBeVisible();
+});

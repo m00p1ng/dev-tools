@@ -81,3 +81,55 @@ test("adoptOutputOnModeChange swaps output into input when switching modes", asy
   await expect.element(screen.getByPlaceholder("Enter text")).toHaveValue("HELLO");
   await expect.element(screen.getByPlaceholder("Output")).toHaveValue("hello");
 });
+
+test("filling empty string clears both input and output", async () => {
+  const screen = await render(
+    <TextTransformTool
+      storageKey="test-ttt-5"
+      initialMode="upper"
+      inputPlaceholder="Enter text"
+      outputPlaceholder="Output"
+      example="hello"
+      transform={caseTransform}
+    />,
+  );
+  await screen.getByRole("button", { name: "Example" }).click();
+  await screen.getByPlaceholder("Enter text").fill("");
+  await expect.element(screen.getByPlaceholder("Enter text")).toHaveValue("");
+  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("");
+});
+
+test("typing in input triggers transform immediately", async () => {
+  const screen = await render(
+    <TextTransformTool
+      storageKey="test-ttt-6"
+      initialMode="upper"
+      inputPlaceholder="Enter text"
+      outputPlaceholder="Output"
+      example="x"
+      transform={caseTransform}
+    />,
+  );
+  await screen.getByPlaceholder("Enter text").fill("world");
+  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("WORLD");
+});
+
+const errorTransform = (input: string, _mode: "default") => {
+  if (input === "bad") return { ok: false as const, error: "Transform failed" };
+  return input;
+};
+
+test("transform error shows error badge", async () => {
+  const screen = await render(
+    <TextTransformTool
+      storageKey="test-ttt-7"
+      initialMode="default"
+      inputPlaceholder="Enter text"
+      outputPlaceholder="Output"
+      example="x"
+      transform={errorTransform}
+    />,
+  );
+  await screen.getByPlaceholder("Enter text").fill("bad");
+  await expect.element(screen.getByText("Transform failed")).toBeVisible();
+});

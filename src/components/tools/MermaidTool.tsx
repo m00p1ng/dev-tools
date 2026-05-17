@@ -196,18 +196,18 @@ export function MermaidTool() {
           >
             {svg && (
               <div className="absolute right-2 top-2 z-10 flex gap-1">
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
+                <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Zoom in" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
                   <ZoomIn className="h-3 w-3" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
+                <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Zoom out" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
                   <ZoomOut className="h-3 w-3" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
+                <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Reset view" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
                   <RotateCcw className="h-3 w-3" />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Select zoom">
                       <span className="text-[10px] font-mono">{Math.round(zoom * 100)}%</span>
                     </Button>
                   </DropdownMenuTrigger>
@@ -221,7 +221,7 @@ export function MermaidTool() {
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Download diagram">
                       <Download className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
