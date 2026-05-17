@@ -127,7 +127,7 @@ test("renders DropdownMenuSub with SubTrigger and SubContent", async () => {
     <DropdownMenu defaultOpen>
       <DropdownMenuTrigger>Open</DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuSub>
+        <DropdownMenuSub defaultOpen>
           <DropdownMenuSubTrigger>More</DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
@@ -139,6 +139,9 @@ test("renders DropdownMenuSub with SubTrigger and SubContent", async () => {
     </DropdownMenu>,
   );
   await expect.element(screen.getByText("More")).toBeVisible();
+  const trigger = screen.getByText("More").element() as HTMLElement;
+  trigger.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerType: "mouse" }));
+  await expect.element(screen.getByText("Sub Item")).toBeVisible();
 });
 
 test("renders DropdownMenuItem with destructive variant", async () => {

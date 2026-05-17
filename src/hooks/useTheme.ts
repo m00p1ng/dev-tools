@@ -21,7 +21,7 @@ export function useTheme() {
   }, [theme]);
 
   const setTheme = useCallback((next: Theme, origin?: { x: number; y: number }) => {
-    if (!("startViewTransition" in document)) {
+    if (typeof document.startViewTransition !== "function") {
       setThemeState(next);
       return;
     }

@@ -31,7 +31,7 @@ test("clearing the input removes parsed fields", async () => {
   const screen = await render(<UrlParserTool />);
   await screen.getByRole("button", { name: "Example" }).click();
   await expect.element(screen.getByText("Protocol")).toBeVisible();
-  await screen.getByRole("textbox").fill("");
+  await screen.getByRole("button", { name: "Clear" }).click();
   // Element removed from DOM when input is empty; use .elements() to avoid "not found" error
   expect(screen.getByText("Protocol").elements()).toHaveLength(0);
 });

@@ -63,6 +63,14 @@ test("Enter key in count input triggers blur and commits value", async () => {
   expect(el.value).toBe("2");
 });
 
+test("slider change updates count input", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  const slider = screen.getByRole("slider").element() as HTMLElement;
+  slider.focus();
+  slider.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  await expect.element(screen.getByRole("spinbutton")).toHaveValue(4);
+});
+
 test("Copy button is visible when output is generated", async () => {
   const screen = await render(<LoremIpsumTool />);
   await expect.element(screen.getByRole("button", { name: "Regenerate" })).toBeVisible();

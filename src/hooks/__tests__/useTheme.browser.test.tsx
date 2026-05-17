@@ -59,14 +59,14 @@ test("setTheme without startViewTransition still updates theme", async () => {
   localStorage.setItem("theme", "light");
   // Remove startViewTransition to test the fallback path
   const saved = (document as Document & { startViewTransition?: unknown }).startViewTransition;
-  delete (document as Document & { startViewTransition?: unknown }).startViewTransition;
+  (document as Document & { startViewTransition?: unknown }).startViewTransition = undefined;
 
   const screen = await render(<Fixture />);
   await screen.getByRole("button", { name: "switch-dark" }).click();
   await expect.element(screen.getByText("active:dark")).toBeVisible();
 
   // Restore
-  if (saved) (document as Document & { startViewTransition?: unknown }).startViewTransition = saved;
+  (document as Document & { startViewTransition?: unknown }).startViewTransition = saved;
 });
 
 function FixtureWithOrigin() {

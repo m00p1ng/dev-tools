@@ -94,7 +94,7 @@ test("filling empty string clears both input and output", async () => {
     />,
   );
   await screen.getByRole("button", { name: "Example" }).click();
-  await screen.getByPlaceholder("Enter text").fill("");
+  await screen.getByRole("button", { name: "Clear" }).click();
   await expect.element(screen.getByPlaceholder("Enter text")).toHaveValue("");
   await expect.element(screen.getByPlaceholder("Output")).toHaveValue("");
 });

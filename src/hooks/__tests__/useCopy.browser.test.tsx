@@ -20,7 +20,11 @@ test("starts in idle state", async () => {
 });
 
 test("shows copied state after copy is called", async () => {
+  vi.useFakeTimers();
   const screen = await render(<Fixture />);
   await screen.getByRole("button", { name: "copy" }).click();
   await expect.element(screen.getByText("copied")).toBeVisible();
+  vi.advanceTimersByTime(50000);
+  await expect.element(screen.getByText("idle")).toBeVisible();
+  vi.useRealTimers();
 });

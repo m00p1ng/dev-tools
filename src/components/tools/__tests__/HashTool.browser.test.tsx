@@ -31,7 +31,7 @@ test("clearing input empties the textarea", async () => {
   const screen = await render(<HashTool />);
   await screen.getByRole("button", { name: "Example" }).click();
   await expect.element(screen.getByText(/65a8e27d/)).toBeVisible();
-  await screen.getByRole("textbox").fill("");
+  await screen.getByRole("button", { name: "Clear" }).click();
   await expect.element(screen.getByRole("textbox")).toHaveValue("");
 });
 

@@ -54,7 +54,10 @@ test("Every 1st of month preset", async () => {
 test("filling empty string hides description and next runs", async () => {
   const screen = await render(<CronTool />);
   await expect.element(screen.getByText("Next 5 runs")).toBeVisible();
-  await screen.getByPlaceholder("* * * * *").fill("");
+  const clearButton = Array.from(document.querySelectorAll("button")).find(
+    (button) => button.querySelector("svg") && !button.textContent?.trim(),
+  ) as HTMLElement;
+  clearButton.click();
   await vi.waitFor(() => {
     expect(screen.getByText("Next 5 runs").elements()).toHaveLength(0);
   }, { timeout: 3000 });

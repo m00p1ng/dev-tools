@@ -4,6 +4,13 @@ import { Sidebar } from "../Sidebar";
 
 beforeEach(() => localStorage.clear());
 
+test("ignores invalid persisted sidebar settings", async () => {
+  localStorage.setItem("favorites", "not-json");
+  localStorage.setItem("hidden-tools", "not-json");
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await expect.element(screen.getByText("JSON Format / Validate")).toBeVisible();
+});
+
 test("renders all group labels and tool names", async () => {
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
   await expect.element(screen.getByText("Data")).toBeVisible();
@@ -48,6 +55,21 @@ test("pre-seeded favorite appears in Favorites section", async () => {
   await expect.element(screen.getByText("Favorites")).toBeVisible();
 });
 
+test("clicking a favorite selects it and clicking star removes it", async () => {
+  localStorage.setItem("favorites", JSON.stringify(["cron"]));
+  const onSelect = vi.fn();
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={onSelect} />);
+
+  await screen.getByText("Cron Parser").click();
+  await vi.waitFor(() => expect(onSelect).toHaveBeenCalledWith("cron"), { timeout: 2000 });
+
+  const favoriteStar = document.querySelector("nav button > div") as HTMLElement;
+  favoriteStar.click();
+  await vi.waitFor(() => {
+    expect(localStorage.getItem("favorites")).toBe("[]");
+  }, { timeout: 2000 });
+});
+
 test("clicking a tool in Manage Tools panel toggles its switch", async () => {
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
   await screen.getByRole("button", { name: /Manage Tools/ }).click();
@@ -70,6 +92,18 @@ test("Reset button appears after hiding a tool and resets visibility", async () 
   await screen.getByText("Reset").click();
   // All switches back on
   await expect.element(screen.getByRole("switch").first()).toBeChecked();
+});
+
+test("clicking a hidden tool switch again restores it", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByRole("button", { name: /Manage Tools/ }).click();
+  const firstSwitch = screen.getByRole("switch").first();
+
+  await firstSwitch.click();
+  await expect.element(firstSwitch).not.toBeChecked();
+  await firstSwitch.click();
+  await expect.element(firstSwitch).toBeChecked();
+  expect(localStorage.getItem("hidden-tools")).toBe("[]");
 });
 
 test("hidden tool is removed from the tool list", async () => {

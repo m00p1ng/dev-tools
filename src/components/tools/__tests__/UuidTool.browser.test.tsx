@@ -109,7 +109,10 @@ test("v5 custom namespace shows namespace UUID input", async () => {
   // Switch to custom namespace
   nsSelect.value = "custom";
   nsSelect.dispatchEvent(new Event("change", { bubbles: true }));
-  await expect.element(screen.getByPlaceholder("Namespace UUID")).toBeVisible();
+  const namespaceInput = screen.getByPlaceholder("Namespace UUID");
+  await expect.element(namespaceInput).toBeVisible();
+  await namespaceInput.fill("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
+  await expect.element(namespaceInput).toHaveValue("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
 });
 
 test("v3 custom namespace input renders with custom option", async () => {

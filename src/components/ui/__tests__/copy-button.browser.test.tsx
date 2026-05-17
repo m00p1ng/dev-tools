@@ -15,9 +15,13 @@ test("withLabel renders Copy label text", async () => {
 });
 
 test("clicking shows Copied! feedback when withLabel is set", async () => {
+  vi.useFakeTimers();
   const screen = await render(<CopyButton text="some text" withLabel />);
   await screen.getByRole("button").click();
   await expect.element(screen.getByText("Copied!")).toBeVisible();
+  vi.advanceTimersByTime(2000);
+  await expect.element(screen.getByText("Copy")).toBeVisible();
+  vi.useRealTimers();
 });
 
 test("clicking button with empty text does nothing", async () => {

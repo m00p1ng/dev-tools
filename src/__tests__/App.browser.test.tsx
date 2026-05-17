@@ -30,6 +30,14 @@ test("onboarding Get started button works", async () => {
   }, { timeout: 3000 });
 });
 
+test("clicking an onboarding category opens that tool", async () => {
+  const screen = await render(<App />);
+  await screen.getByRole("button", { name: /Timestamps & cron/ }).click();
+  await vi.waitFor(async () => {
+    await expect.element(screen.getByText("Current Unix Timestamp")).toBeVisible();
+  }, { timeout: 3000 });
+});
+
 test("sidebar is rendered with navigation", async () => {
   localStorage.setItem("onboarding-v1", "true");
   await render(<App />);

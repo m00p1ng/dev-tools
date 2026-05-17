@@ -60,7 +60,7 @@ export function ToolToolbar({ left, right, onExample, onClear }: ToolToolbarProp
           </Button>
         )}
         {onClear && (
-          <Button size="sm" variant="ghost" onClick={onClear}>
+          <Button size="sm" variant="ghost" aria-label="Clear" onClick={onClear}>
             <RotateCcw className="h-3.5 w-3.5" />
           </Button>
         )}
