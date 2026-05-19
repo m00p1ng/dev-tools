@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@layer base {
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
 /* Prism token colors — light */
 .token.keyword  { color: #7c3aed; }
 .token.operator { color: #0891b2; }

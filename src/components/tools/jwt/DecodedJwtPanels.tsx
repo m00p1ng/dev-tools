@@ -73,7 +73,7 @@ function EditableJsonOverlay({
           spellCheck={false}
         />
       </div>
-      {error && <p className="text-xs text-destructive px-3 pb-2">{error}</p>}
+      {error && <p className="text-sm text-destructive px-3 pb-2">{error}</p>}
     </div>
   );
 }
@@ -85,7 +85,7 @@ export function DecodedPanel({ title, data, editable, editValue, onEditChange, e
   return (
     <div className="border border-border rounded-md overflow-hidden">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40">
-        <span className="text-xs font-semibold text-muted-foreground">{title}</span>
+        <span className="text-sm font-semibold text-muted-foreground">{title}</span>
         <div className="flex items-center gap-1">
           <div className="flex text-xs rounded overflow-hidden border border-border">
             {(["json", "claims"] as TabType[]).map((t) => (

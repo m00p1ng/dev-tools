@@ -100,39 +100,49 @@ function ToolButton({
   active: boolean;
   isFav: boolean;
   onSelect: () => void;
-  onToggleFav: (e: React.MouseEvent) => void;
+  onToggleFav: () => void;
 }) {
   return (
-    <motion.button
-      onClick={onSelect}
-      layout
+    <div
       className={cn(
-        "group w-full rounded-md px-3 py-2 text-left text-sm transition-colors flex items-center gap-2.5",
-        active
-          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-          : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+        "group relative flex w-full items-center rounded-md transition-colors",
+        active ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/50"
       )}
-      whileHover={{ x: 2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
     >
-      <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
-      <span className="flex-1 truncate">{tool.label}</span>
-      <motion.div
+      <motion.button
+        onClick={onSelect}
+        layout
+        className={cn(
+          "flex flex-1 items-center gap-2.5 px-3 py-2 text-left text-sm touch-manipulation min-w-0",
+          active
+            ? "text-sidebar-accent-foreground font-medium"
+            : "text-sidebar-foreground"
+        )}
+        whileHover={{ x: 2 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      >
+        <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
+        <span className="flex-1 truncate">{tool.label}</span>
+      </motion.button>
+
+      <motion.button
         onClick={onToggleFav}
-        whileTap={{ scale: 1.5, rotate: 20 }}
+        whileTap={{ scale: 1.4, rotate: 20 }}
         transition={{ type: "spring", stiffness: 600, damping: 12 }}
+        className="flex shrink-0 items-center justify-center px-3 py-2 touch-manipulation"
+        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
       >
         <Star
           className={cn(
-            "size-3 shrink-0 transition-all duration-200",
+            "size-3.5 shrink-0 transition-all duration-200",
             isFav
-              ? "fill-yellow-400 text-yellow-400 opacity-100"
-              : "opacity-0 group-hover:opacity-60 text-muted-foreground"
+              ? "fill-yellow-400 text-yellow-400"
+              : "text-muted-foreground opacity-40 sm:opacity-0 sm:group-hover:opacity-60"
           )}
         />
-      </motion.div>
-    </motion.button>
+      </motion.button>
+    </div>
   );
 }
 
@@ -154,8 +164,7 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
   const favSet = new Set(favorites);
   const hiddenSet = new Set(hiddenTools);
 
-  function toggleFav(e: React.MouseEvent, id: string) {
-    e.stopPropagation();
+  function toggleFav(id: string) {
     setFavorites((prev) => {
       const next = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
       saveFavorites(next);
@@ -310,7 +319,7 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                               active={activeTool === tool.id}
                               isFav
                               onSelect={() => onSelect(tool.id)}
-                              onToggleFav={(e) => toggleFav(e, tool.id)}
+                              onToggleFav={() => toggleFav(tool.id)}
                             />
                           </motion.div>
                         ))}
@@ -337,7 +346,7 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                           active={activeTool === tool.id}
                           isFav={favSet.has(tool.id)}
                           onSelect={() => onSelect(tool.id)}
-                          onToggleFav={(e) => toggleFav(e, tool.id)}
+                          onToggleFav={() => toggleFav(tool.id)}
                         />
                       </motion.div>
                     ))}
@@ -357,7 +366,7 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
                                 active={activeTool === tool.id}
                                 isFav={favSet.has(tool.id)}
                                 onSelect={() => onSelect(tool.id)}
-                                onToggleFav={(e) => toggleFav(e, tool.id)}
+                                onToggleFav={() => toggleFav(tool.id)}
                               />
                             </motion.div>
                           ))}

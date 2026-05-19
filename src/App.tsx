@@ -15,7 +15,10 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 
 export default function App() {
   const isMobile = useIsMobile();
-  const [activeTool, setActiveTool] = useState(TOOLS[0].id);
+  const [activeTool, setActiveTool] = useState(() => {
+    const param = new URLSearchParams(window.location.search).get("tool");
+    return TOOLS.find((t) => t.id === param)?.id ?? TOOLS[0].id;
+  });
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage<boolean>("onboarding-v1", false);
   const { theme } = useTheme();
@@ -28,13 +31,16 @@ export default function App() {
 
   const handleToolSelect = (id: string) => {
     setActiveTool(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tool", id);
+    history.replaceState(null, "", url);
     if (isMobile) setSidebarOpen(false);
   };
 
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       {!hasSeenOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <Toaster position="bottom-right" theme={theme} />
 
@@ -69,7 +75,7 @@ export default function App() {
       </AnimatePresence>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-10 flex-shrink-0 items-center justify-between border-b border-border px-4">
+        <header className="sticky top-0 z-10 flex h-10 flex-shrink-0 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon-xs" onClick={() => setSidebarOpen((v) => !v)}>
               <AnimatePresence mode="wait" initial={false}>

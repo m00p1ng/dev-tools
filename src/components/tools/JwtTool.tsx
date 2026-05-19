@@ -133,30 +133,25 @@ export function JwtTool() {
       <div className="flex flex-col flex-1 gap-3">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Decoded</span>
 
-        {parts ? (
-          <>
-            <DecodedPanel title="Header" data={parts.header} />
-            <DecodedPanel
-              title="Payload"
-              data={parts.payload}
-              editable
-              editValue={payloadEditStr}
-              onEditChange={handlePayloadEdit}
-              editError={payloadEditError}
-            />
-            <SignatureVerification
-              parts={parts}
-              secret={secret}
-              isBase64Secret={isBase64Secret}
-              onSecretChange={setSecret}
-              onBase64SecretChange={setIsBase64Secret}
-            />
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground">
-            Paste a JWT token to decode
-          </div>
-        )}
+        <DecodedPanel
+          title="Header"
+          data={parts?.header ?? {}}
+        />
+        <DecodedPanel
+          title="Payload"
+          data={parts?.payload ?? {}}
+          editable={!!parts}
+          editValue={payloadEditStr}
+          onEditChange={handlePayloadEdit}
+          editError={payloadEditError}
+        />
+        <SignatureVerification
+          parts={parts}
+          secret={secret}
+          isBase64Secret={isBase64Secret}
+          onSecretChange={setSecret}
+          onBase64SecretChange={setIsBase64Secret}
+        />
       </div>
     </div>
   );

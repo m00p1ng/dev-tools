@@ -6,6 +6,10 @@ import {
   useMotionTemplate,
   type Variants,
 } from "framer-motion";
+
+const isTouchDevice = () =>
+  typeof window !== "undefined" &&
+  (navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches);
 import { TOOLS } from "@/tools";
 
 const GROUPS = [...new Set(TOOLS.map((t) => t.group))];
@@ -54,8 +58,10 @@ function TiltCard({ children, variants, className, style, onClick, onMouseEnter,
   const springRotY = useSpring(rotY, { stiffness: 420, damping: 30 });
   const springSc   = useSpring(sc,   { stiffness: 420, damping: 30 });
 
+  const touch = isTouchDevice();
+
   const handleMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
+    if (touch || !ref.current) return;
     const r = ref.current.getBoundingClientRect();
     rotX.set(-((e.clientY - r.top)  / r.height - 0.5) * 14);
     rotY.set( ((e.clientX - r.left) / r.width  - 0.5) * 14);
@@ -75,7 +81,7 @@ function TiltCard({ children, variants, className, style, onClick, onMouseEnter,
       onMouseLeave={handleLeave}
       onMouseEnter={onMouseEnter}
       onMouseDown={() => sc.set(0.97)}
-      onMouseUp={() => sc.set(1.025)}
+      onMouseUp={() => sc.set(touch ? 1 : 1.025)}
       onClick={onClick}
       className={className}
       style={{
@@ -127,14 +133,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     setTimeout(() => onComplete(toolId), 500);
   };
 
+  const touch = isTouchDevice();
+
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background overflow-y-auto"
       animate={{ opacity: exiting ? 0 : 1 }}
       transition={{ duration: 0.45, ease: "easeInOut" }}
       style={{ pointerEvents: exiting ? "none" : undefined }}
     >
-      <div className="flex flex-col items-center gap-10 px-8 w-full max-w-2xl">
+      <div className="flex flex-col items-center gap-6 sm:gap-10 px-4 sm:px-8 py-8 w-full max-w-2xl">
 
         {/* Title */}
         <motion.div
@@ -143,7 +151,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
             Dev Tools
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -155,6 +163,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         <div
           className="relative w-full"
           onMouseMove={(e) => {
+            if (touch) return;
             const r = e.currentTarget.getBoundingClientRect();
             mouseX.set(e.clientX - r.left);
             mouseY.set(e.clientY - r.top);
@@ -167,7 +176,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           />
 
           <motion.div
-            className="grid grid-cols-3 gap-2"
+            className="grid grid-cols-2 sm:grid-cols-3 gap-2"
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.25 } } }}
@@ -184,7 +193,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   onClick={() => launch(tools[0].id)}
                   onMouseEnter={() => setHovered(group)}
                   onHoverEnd={() => setHovered(null)}
-                  className="text-left p-4 rounded-lg border border-border bg-card cursor-pointer"
+                  className="text-left p-3 sm:p-4 rounded-lg border border-border bg-card cursor-pointer w-full"
                   style={{
                     borderColor: isHov ? accent + "66" : undefined,
                     backgroundColor: isHov ? accent + "0a" : undefined,
@@ -201,7 +210,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                     <span className="text-xs font-medium text-foreground">{group}</span>
                   </div>
 
-                  <p className="text-[11px] text-muted-foreground mb-3">{GROUP_DESC[group]}</p>
+                  <p className="text-[11px] text-muted-foreground mb-2 sm:mb-3">{GROUP_DESC[group]}</p>
 
                   <p className="text-[10px] text-muted-foreground/50">{tools.length} tools</p>
                 </TiltCard>
@@ -210,7 +219,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           </motion.div>
         </div>
 
-        {/* Magnetic CTA */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -219,16 +228,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         >
           <motion.button
             ref={btnRef}
-            onMouseMove={handleBtnMove}
-            onMouseLeave={() => { bx.set(0); by.set(0); }}
+            onMouseMove={touch ? undefined : handleBtnMove}
+            onMouseLeave={touch ? undefined : () => { bx.set(0); by.set(0); }}
             onClick={() => launch()}
-            style={{ x: sbx, y: sby }}
-            className="px-8 py-2 text-sm font-medium rounded-md bg-foreground text-background hover:opacity-80 transition-opacity"
+            style={touch ? undefined : { x: sbx, y: sby }}
+            className="px-8 py-2.5 sm:py-2 text-sm font-medium rounded-md bg-foreground text-background hover:opacity-80 active:opacity-70 transition-opacity touch-manipulation"
           >
             Get started
           </motion.button>
           <p className="text-[11px] text-muted-foreground/40">
-            or click a category to jump in
+            or {touch ? "tap" : "click"} a category to jump in
           </p>
         </motion.div>
 
