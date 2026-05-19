@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useFontSize } from "@/hooks/useFontSize";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [activeTool, setActiveTool] = useState(TOOLS[0].id);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage<boolean>("onboarding-v1", false);
   const { theme } = useTheme();
   useFontSize();
@@ -24,12 +26,32 @@ export default function App() {
     if (toolId) setActiveTool(toolId);
   };
 
+  const handleToolSelect = (id: string) => {
+    setActiveTool(id);
+    if (isMobile) setSidebarOpen(false);
+  };
+
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {!hasSeenOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <Toaster position="bottom-right" theme={theme} />
+
+      <AnimatePresence initial={false}>
+        {sidebarOpen && isMobile && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence initial={false}>
         {sidebarOpen && (
           <motion.div
@@ -39,8 +61,9 @@ export default function App() {
             exit={{ x: -288, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             style={{ flexShrink: 0 }}
+            className={isMobile ? "fixed inset-y-0 left-0 z-50" : undefined}
           >
-            <Sidebar activeTool={activeTool} onSelect={setActiveTool} />
+            <Sidebar activeTool={activeTool} onSelect={handleToolSelect} />
           </motion.div>
         )}
       </AnimatePresence>

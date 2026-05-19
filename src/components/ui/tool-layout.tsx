@@ -27,18 +27,18 @@ export function ToolPane({ children, gap = 2, className }: PaneProps) {
 export function ToolOutputPane({ children, gap = 2, className }: PaneProps) {
   return (
     <ToolPane gap={gap} className={className}>
-      <div className="hidden lg:block h-8 shrink-0" />
+      <div className="hidden lg:block h-8 shrink-0" aria-hidden />
       {children}
     </ToolPane>
   );
 }
 
 export function ToolSidebarLayout({ children }: { children: React.ReactNode }) {
-  return <div className="flex h-full gap-4 min-h-0">{children}</div>;
+  return <div className="flex h-full flex-col gap-4 min-h-0 md:flex-row">{children}</div>;
 }
 
 export function ToolSidebar({ children }: { children: React.ReactNode }) {
-  return <div className="w-64 shrink-0 flex flex-col gap-4">{children}</div>;
+  return <div className="w-full shrink-0 flex flex-col gap-4 md:w-64">{children}</div>;
 }
 
 interface ToolToolbarProps {
