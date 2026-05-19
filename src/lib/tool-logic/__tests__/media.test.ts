@@ -23,7 +23,7 @@ describe("media helpers", () => {
   it("falls back to 800x600 when all attributes are missing", () => {
     const svg = {
       getAttribute: () => null,
-    } as SVGElement;
+    } as unknown as SVGElement;
     expect(resolveSvgDimensions(svg)).toEqual({ width: 800, height: 600 });
   });
 

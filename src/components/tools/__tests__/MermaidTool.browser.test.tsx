@@ -116,7 +116,7 @@ test("mouseleave resets dragging state", async () => {
 
 test("clicking zoom buttons changes zoom level", async () => {
   const screen = await render(<MermaidTool />);
-  await expect.element(screen.getByRole("button", { name: "Zoom in" })).toBeVisible({ timeout: 5000 });
+  await expect.element(screen.getByRole("button", { name: "Zoom in" })).toBeVisible();
   await screen.getByRole("button", { name: "Zoom in" }).click();
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("110%");
   await screen.getByRole("button", { name: "Zoom out" }).click();
@@ -127,7 +127,7 @@ test("clicking zoom buttons changes zoom level", async () => {
 
 test("zoom dropdown opens and sets zoom to a preset", async () => {
   const screen = await render(<MermaidTool />);
-  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toBeVisible({ timeout: 5000 });
+  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toBeVisible();
   const zoomPctBtn = screen.getByRole("button", { name: "Select zoom" }).element() as HTMLElement;
   openDropdown(zoomPctBtn);
   await vi.waitFor(() => {
@@ -220,7 +220,7 @@ test.each([
     .mockReturnValue(`data:${mimeType};base64,mock`);
 
   const screen = await render(<MermaidTool />);
-  await expect.element(screen.getByRole("button", { name: "Download diagram" })).toBeVisible({ timeout: 5000 });
+  await expect.element(screen.getByRole("button", { name: "Download diagram" })).toBeVisible();
 
   openDropdown(screen.getByRole("button", { name: "Download diagram" }).element() as HTMLElement);
 
