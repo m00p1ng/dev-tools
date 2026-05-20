@@ -24,7 +24,7 @@ function hsvToRgbFast(h: number, s: number, v: number): [number, number, number]
 }
 
 export function useColorWheel(
-  wheelRef: RefObject<HTMLDivElement>,
+  wheelRef: RefObject<HTMLDivElement | null>,
   hsv: Hsv,
   setHsv: (hsv: Hsv) => void,
   savedColors: (string | null)[],

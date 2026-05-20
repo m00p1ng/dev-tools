@@ -3,8 +3,8 @@ import type { RefObject } from "react";
 const CANVAS_SIZE = 512;
 
 interface ColorWheelProps {
-  canvasRef: RefObject<HTMLCanvasElement>;
-  wheelRef: RefObject<HTMLDivElement>;
+  canvasRef: RefObject<HTMLCanvasElement | null>;
+  wheelRef: RefObject<HTMLDivElement | null>;
   cursorLeft: string;
   cursorTop: string;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;

@@ -1,7 +1,7 @@
 import { useCallback, type RefObject } from "react";
 
 export function useDragSlider(
-  ref: RefObject<HTMLDivElement>,
+  ref: RefObject<HTMLDivElement | null>,
   onValue: (pct: number) => void,
 ) {
   const pick = useCallback((clientX: number) => {

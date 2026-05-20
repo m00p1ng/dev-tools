@@ -4,7 +4,7 @@ interface ColorSliderProps {
   value: number;
   containerStyle: CSSProperties;
   thumbColor: string;
-  sliderRef: RefObject<HTMLDivElement>;
+  sliderRef: RefObject<HTMLDivElement | null>;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => void;
   onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
