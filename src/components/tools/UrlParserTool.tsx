@@ -42,35 +42,44 @@ function buildHighlight(raw: string): React.ReactNode {
 
     nodes.push(<span key="hostname" className="text-green-500 dark:text-green-400">{u.hostname}</span>);
 
+    const rawHasColon = raw.trim().slice(raw.indexOf(u.hostname) + u.hostname.length).startsWith(":");
     if (u.port) {
       nodes.push(<span key="colon-port" className={muted}>:</span>);
       nodes.push(<span key="port" className="text-yellow-500 dark:text-yellow-400">{u.port}</span>);
+    } else if (rawHasColon) {
+      nodes.push(<span key="colon-port" className={muted}>:</span>);
     }
 
+    const hostWithPort = u.hostname + (u.port ? `:${u.port}` : "");
     if (u.pathname === "/") {
-      nodes.push(<span key="slash" className={muted}>/</span>);
+      if (raw.trim().includes(hostWithPort + "/")) {
+        nodes.push(<span key="slash" className={muted}>/</span>);
+      }
     } else if (u.pathname) {
-      nodes.push(<span key="path" className="text-purple-500 dark:text-purple-400">{u.pathname}</span>);
+      nodes.push(<span key="path" className="text-rose-500 dark:text-rose-400">{u.pathname}</span>);
     }
 
-    if (u.search) {
+    const rawHasQuery = raw.trim().includes("?");
+    if (rawHasQuery || u.search) {
       nodes.push(<span key="q" className={muted}>?</span>);
-      u.search.slice(1).split("&").forEach((pair, i) => {
-        if (i > 0) nodes.push(<span key={`amp-${i}`} className={muted}>&</span>);
-        const [k, ...rest] = pair.split("=");
-        const v = rest.join("=");
-        const color = paramColors[i % paramColors.length];
-        nodes.push(<span key={`pk-${i}`} className={color}>{k}</span>);
-        if (v !== undefined) {
-          nodes.push(<span key={`peq-${i}`} className={muted}>=</span>);
-          nodes.push(<span key={`pv-${i}`} className={cn(color, "opacity-75")}>{v}</span>);
-        }
-      });
+      if (u.search) {
+        u.search.slice(1).split("&").forEach((pair, i) => {
+          if (i > 0) nodes.push(<span key={`amp-${i}`} className={muted}>&</span>);
+          if (!pair) return;
+          const [k, ...rest] = pair.split("=");
+          const v = rest.join("=");
+          nodes.push(<span key={`pk-${i}`} className="text-amber-500 dark:text-amber-400">{k}</span>);
+          if (rest.length > 0) {
+            nodes.push(<span key={`peq-${i}`} className={muted}>=</span>);
+            nodes.push(<span key={`pv-${i}`} className="text-amber-500/75 dark:text-amber-400/75">{v}</span>);
+          }
+        });
+      }
     }
 
-    if (u.hash) {
+    if (u.hash || raw.trim().includes("#")) {
       nodes.push(<span key="hash-sym" className={muted}>#</span>);
-      nodes.push(<span key="hash" className="text-teal-500 dark:text-teal-400">{u.hash.slice(1)}</span>);
+      if (u.hash) nodes.push(<span key="hash" className="text-teal-500 dark:text-teal-400">{u.hash.slice(1)}</span>);
     }
 
     return nodes;
@@ -102,16 +111,15 @@ export function UrlParserTool() {
           parsed.host],
         ["Hostname", parsed.hostname, "text-green-500 dark:text-green-400", parsed.hostname],
         ["Port", parsed.port || "(default)", "text-yellow-500 dark:text-yellow-400", parsed.port || "(default)"],
-        ["Path", parsed.pathname, "text-purple-500 dark:text-purple-400", parsed.pathname],
+        ["Path", parsed.pathname, "text-rose-500 dark:text-rose-400", parsed.pathname],
         ["Query", parsed.search
           ? <><span className="text-muted-foreground">?</span>{parsed.search.slice(1).split("&").map((pair, i) => {
               const [k, ...rest] = pair.split("=");
               const v = rest.join("=");
-              const color = paramColors[i % paramColors.length];
               return <React.Fragment key={i}>
                 {i > 0 && <span className="text-muted-foreground">&</span>}
-                <span className={color}>{k}</span>
-                {v !== undefined && <><span className="text-muted-foreground">=</span><span className={cn(color, "opacity-75")}>{v}</span></>}
+                {pair && <span className="text-amber-500 dark:text-amber-400">{k}</span>}
+                {pair && rest.length > 0 && <><span className="text-muted-foreground">=</span><span className="text-amber-500/75 dark:text-amber-400/75">{v}</span></>}
               </React.Fragment>;
             })}</>
           : "(none)", "", parsed.search || "(none)"],
@@ -119,7 +127,9 @@ export function UrlParserTool() {
           ? <><span className="text-muted-foreground">#</span><span className="text-teal-500 dark:text-teal-400">{parsed.hash.slice(1)}</span></>
           : "(none)", "", parsed.hash || "(none)"],
       ]
-    : [];
+    : ["Protocol", "Host", "Hostname", "Port", "Path", "Query", "Hash"].map(
+        (label) => [label, <span className="text-muted-foreground/40">—</span>, "", ""] as [string, React.ReactNode, string, string]
+      );
 
   return (
     <ToolLayout>
@@ -151,7 +161,7 @@ export function UrlParserTool() {
       </div>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
-      {parsed && (
+      {(parsed || (!input && !error)) && (
         <div className="space-y-3 overflow-auto">
           <motion.table
             className="w-full text-sm"
@@ -172,7 +182,7 @@ export function UrlParserTool() {
             </tbody>
           </motion.table>
 
-          {parsed.params.length > 0 && (
+          {parsed?.params.length > 0 && (
             <div>
               <p className="text-sm font-medium mb-2">Query Parameters</p>
               <motion.table
