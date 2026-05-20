@@ -2,20 +2,22 @@ import { expect, test } from "vitest";
 import { render } from "vitest-browser-react";
 import { LoremIpsumTool } from "../LoremIpsumTool";
 
+function outputText() {
+  return document.querySelector("pre")?.textContent ?? "";
+}
+
 test("generates non-empty lorem ipsum text by default", async () => {
-  const screen = await render(<LoremIpsumTool />);
-  const output = screen.getByRole("textbox");
-  await expect.element(output).toBeVisible();
-  const el = output.element() as HTMLTextAreaElement;
-  expect(el.value.length).toBeGreaterThan(0);
+  await render(<LoremIpsumTool />);
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
 });
 
 test("Regenerate button produces new output", async () => {
   const screen = await render(<LoremIpsumTool />);
-  const output = screen.getByRole("textbox");
-  const before = (output.element() as HTMLTextAreaElement).value;
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
+  const before = outputText();
   await screen.getByRole("button", { name: "Regenerate" }).click();
-  const after = (output.element() as HTMLTextAreaElement).value;
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
+  const after = outputText();
   expect(before.length).toBeGreaterThan(0);
   expect(after.length).toBeGreaterThan(0);
 });
@@ -24,15 +26,13 @@ test("switching to Words unit changes output style", async () => {
   const screen = await render(<LoremIpsumTool />);
   await screen.getByRole("combobox").selectOptions("words");
   await screen.getByRole("button", { name: "Regenerate" }).click();
-  const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
-  expect(value.length).toBeGreaterThan(0);
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
 });
 
 test("switching to Sentences unit generates sentence output", async () => {
   const screen = await render(<LoremIpsumTool />);
   await screen.getByRole("combobox").selectOptions("sentences");
-  const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
-  expect(value.length).toBeGreaterThan(0);
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
 });
 
 test("changing count via input updates output", async () => {
@@ -40,8 +40,7 @@ test("changing count via input updates output", async () => {
   const countInput = screen.getByRole("spinbutton");
   await countInput.fill("1");
   await screen.getByRole("button", { name: "Regenerate" }).click();
-  const value = (screen.getByRole("textbox").element() as HTMLTextAreaElement).value;
-  expect(value.length).toBeGreaterThan(0);
+  await expect.poll(() => outputText().length).toBeGreaterThan(0);
 });
 
 test("count clamped to 1 when 0 is entered then blurred", async () => {

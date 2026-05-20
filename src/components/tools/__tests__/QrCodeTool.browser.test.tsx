@@ -171,9 +171,7 @@ test("reads a generated QR image from the read tab", async () => {
   dt.items.add(new File([blob], "generated.png", { type: "image/png" }));
   dropZone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
 
-  await vi.waitFor(async () => {
-    await expect.element(screen.getByRole("textbox")).toHaveValue("decoded-from-image");
-  }, { timeout: 5000 });
+  await expect.poll(() => document.querySelector("pre")?.textContent ?? "", { timeout: 5000 }).toBe("decoded-from-image");
 });
 
 test("file drop returns early when canvas context is unavailable", async () => {

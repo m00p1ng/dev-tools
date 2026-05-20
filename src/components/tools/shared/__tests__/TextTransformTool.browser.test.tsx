@@ -5,6 +5,10 @@ import { TextTransformTool } from "../TextTransformTool";
 const caseTransform = (input: string, mode: "upper" | "lower") =>
   mode === "upper" ? input.toUpperCase() : input.toLowerCase();
 
+function outputText() {
+  return document.querySelector("pre")?.textContent ?? "";
+}
+
 beforeEach(() => localStorage.clear());
 
 test("Example button fills the input with the example text", async () => {
@@ -34,7 +38,7 @@ test("output textarea reflects the transformed value", async () => {
     />,
   );
   await screen.getByRole("button", { name: "Example" }).click();
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("HELLO");
+  await expect.poll(outputText).toBe("HELLO");
 });
 
 test("switching modes transforms the current input differently", async () => {
@@ -53,9 +57,9 @@ test("switching modes transforms the current input differently", async () => {
     />,
   );
   await screen.getByRole("button", { name: "Example" }).click();
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("HELLO WORLD");
+  await expect.poll(outputText).toBe("HELLO WORLD");
   await screen.getByRole("button", { name: "Lower" }).click();
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("hello world");
+  await expect.poll(outputText).toBe("hello world");
 });
 
 test("adoptOutputOnModeChange swaps output into input when switching modes", async () => {
@@ -75,11 +79,11 @@ test("adoptOutputOnModeChange swaps output into input when switching modes", asy
     />,
   );
   await screen.getByRole("button", { name: "Example" }).click();
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("HELLO");
+  await expect.poll(outputText).toBe("HELLO");
   await screen.getByRole("button", { name: "Lower" }).click();
   // After adopt, input becomes "HELLO", output becomes "hello"
   await expect.element(screen.getByPlaceholder("Enter text")).toHaveValue("HELLO");
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("hello");
+  await expect.poll(outputText).toBe("hello");
 });
 
 test("filling empty string clears both input and output", async () => {
@@ -96,7 +100,7 @@ test("filling empty string clears both input and output", async () => {
   await screen.getByRole("button", { name: "Example" }).click();
   await screen.getByRole("button", { name: "Clear" }).click();
   await expect.element(screen.getByPlaceholder("Enter text")).toHaveValue("");
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("");
+  expect(outputText()).toBe("");
 });
 
 test("typing in input triggers transform immediately", async () => {
@@ -111,7 +115,7 @@ test("typing in input triggers transform immediately", async () => {
     />,
   );
   await screen.getByPlaceholder("Enter text").fill("world");
-  await expect.element(screen.getByPlaceholder("Output")).toHaveValue("WORLD");
+  await expect.poll(outputText).toBe("WORLD");
 });
 
 const errorTransform = (input: string, _mode: "default") => {

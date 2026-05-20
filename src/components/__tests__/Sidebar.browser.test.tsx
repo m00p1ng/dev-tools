@@ -63,8 +63,7 @@ test("clicking a favorite selects it and clicking star removes it", async () => 
   await screen.getByText("Cron Parser").click();
   await vi.waitFor(() => expect(onSelect).toHaveBeenCalledWith("cron"), { timeout: 2000 });
 
-  const favoriteStar = document.querySelector("nav button > div") as HTMLElement;
-  favoriteStar.click();
+  await screen.getByRole("button", { name: "Remove from favorites" }).click();
   await vi.waitFor(() => {
     expect(localStorage.getItem("favorites")).toBe("[]");
   }, { timeout: 2000 });

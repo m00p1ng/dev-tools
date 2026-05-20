@@ -144,18 +144,9 @@ test("zoom dropdown opens and sets zoom to a preset", async () => {
 });
 
 test("download dropdown opens with PNG/JPG/SVG options", async () => {
-  await render(<MermaidTool />);
-  await vi.waitFor(() => expect(document.querySelector("svg")).not.toBeNull(), { timeout: 5000 });
-  // Wait for overlay buttons (5: ZoomIn, ZoomOut, Reset, %, Download)
-  await vi.waitFor(() => {
-    const btns = Array.from(document.querySelectorAll("button")).filter((b) => b.className.includes("h-6"));
-    expect(btns.length).toBeGreaterThanOrEqual(5);
-  }, { timeout: 3000 });
-  // The download button is the last h-6 button (index 4)
-  const iconBtns = Array.from(document.querySelectorAll("button")).filter((b) => b.className.includes("h-6"));
-  const downloadTrigger = iconBtns[iconBtns.length - 1] as HTMLElement | undefined;
-  expect(downloadTrigger).not.toBeUndefined();
-  openDropdown(downloadTrigger!);
+  const screen = await render(<MermaidTool />);
+  await expect.element(screen.getByRole("button", { name: "Download diagram" })).toBeVisible();
+  openDropdown(screen.getByRole("button", { name: "Download diagram" }).element() as HTMLElement);
   await vi.waitFor(() => {
     const items = document.querySelectorAll("[role='menuitem']");
     expect(items.length).toBeGreaterThan(0);
@@ -168,17 +159,9 @@ test("clicking SVG download option triggers download", async () => {
   const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock");
   const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
 
-  await render(<MermaidTool />);
-  await vi.waitFor(() => expect(document.querySelector("svg")).not.toBeNull(), { timeout: 5000 });
-
-  await vi.waitFor(() => {
-    const btns = Array.from(document.querySelectorAll("button")).filter((b) => b.className.includes("h-6"));
-    expect(btns.length).toBeGreaterThanOrEqual(5);
-  }, { timeout: 3000 });
-  const iconBtns = Array.from(document.querySelectorAll("button")).filter((b) => b.className.includes("h-6"));
-  const downloadTrigger = iconBtns[iconBtns.length - 1] as HTMLElement | undefined;
-  expect(downloadTrigger).not.toBeUndefined();
-  openDropdown(downloadTrigger!);
+  const screen = await render(<MermaidTool />);
+  await expect.element(screen.getByRole("button", { name: "Download diagram" })).toBeVisible();
+  openDropdown(screen.getByRole("button", { name: "Download diagram" }).element() as HTMLElement);
 
   await vi.waitFor(() => {
     const items = document.querySelectorAll("[role='menuitem']");

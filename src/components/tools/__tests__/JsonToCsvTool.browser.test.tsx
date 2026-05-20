@@ -16,8 +16,8 @@ test("Example button fills input with JSON array", async () => {
 test("Example produces CSV output with headers and rows", async () => {
   const screen = await render(<JsonToCsvTool />);
   await screen.getByRole("button", { name: "Example" }).click();
-  const output = screen.getByPlaceholder("CSV output...").element() as HTMLTextAreaElement;
-  expect(output.value).toContain("name");
-  expect(output.value).toContain("age");
-  expect(output.value).toContain("Alice");
+  await expect.poll(() => document.querySelector("pre")?.textContent ?? "").toContain("name");
+  const output = document.querySelector("pre")?.textContent ?? "";
+  expect(output).toContain("age");
+  expect(output).toContain("Alice");
 });
