@@ -63,7 +63,7 @@ export default function App() {
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background">
+    <div className="safe-area-shell flex h-dvh box-border overflow-hidden bg-background">
       {!hasSeenOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <Toaster position="bottom-right" theme={theme} />
 
@@ -93,10 +93,10 @@ export default function App() {
               x: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.18 },
             }}
-            style={{ flexShrink: 0, overflow: "hidden" }}
-            className={sidebarOverlay ? "fixed inset-y-0 left-0 z-50" : undefined}
+            style={{ flexShrink: 0, overflow: sidebarOverlay ? "visible" : "hidden" }}
+            className={sidebarOverlay ? "fixed inset-y-0 left-0 z-50 bg-sidebar" : undefined}
           >
-            <Sidebar activeTool={activeTool} onSelect={handleToolSelect} />
+            <Sidebar activeTool={activeTool} onSelect={handleToolSelect} overlay={sidebarOverlay} />
           </motion.div>
         )}
       </AnimatePresence>

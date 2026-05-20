@@ -34,6 +34,7 @@ import {
 interface SidebarProps {
   activeTool: string;
   onSelect: (id: string) => void;
+  overlay?: boolean;
 }
 
 const TOOL_ICONS: Record<string, React.FC<LucideProps>> = {
@@ -156,7 +157,7 @@ const itemVariants = {
   visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } },
 };
 
-export function Sidebar({ activeTool, onSelect }: SidebarProps) {
+export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps) {
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const [hiddenTools, setHiddenTools] = useState<string[]>(loadHiddenTools);
@@ -219,7 +220,12 @@ export function Sidebar({ activeTool, onSelect }: SidebarProps) {
   );
 
   return (
-    <aside className="flex h-screen w-72 flex-shrink-0 flex-col border-r border-border bg-sidebar">
+    <aside
+      className={cn(
+        "flex w-72 flex-shrink-0 flex-col border-r border-border bg-sidebar",
+        overlay ? "safe-area-sidebar h-full" : "h-full"
+      )}
+    >
       <div className="px-3 py-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
