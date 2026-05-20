@@ -32,7 +32,7 @@ test("shows a payload JSON validation error while editing", async () => {
 
 test("shows placeholder when no token is pasted", async () => {
   const screen = await render(<JwtTool />);
-  await expect.element(screen.getByText("Paste a JWT token to decode")).toBeVisible();
+  await expect.element(screen.getByText("Paste JWT token here... or drop a file")).toBeVisible();
 });
 
 test("shows Invalid JWT error for malformed token", async () => {
@@ -46,7 +46,7 @@ test("clear button resets the token input and decoded view", async () => {
   await screen.getByRole("button", { name: "Example" }).click();
   await expect.element(screen.getByText("Header")).toBeVisible();
   await screen.getByRole("button", { name: "Clear JWT" }).click();
-  await expect.element(screen.getByText("Paste a JWT token to decode")).toBeVisible();
+  await expect.element(screen.getByText("Paste JWT token here... or drop a file")).toBeVisible();
 });
 
 test("editing payload with valid JSON updates the token", async () => {
@@ -70,6 +70,12 @@ test("wrong secret shows Invalid Signature", async () => {
   const screen = await render(<JwtTool />);
   await screen.getByRole("button", { name: "Example" }).click();
   await screen.getByLabelText("JWT verification secret").fill("wrong-secret");
+  await expect.element(screen.getByText("Invalid Signature")).toBeVisible();
+});
+
+test("missing secret shows Invalid Signature", async () => {
+  const screen = await render(<JwtTool />);
+  await screen.getByRole("button", { name: "Example" }).click();
   await expect.element(screen.getByText("Invalid Signature")).toBeVisible();
 });
 

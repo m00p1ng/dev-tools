@@ -18,6 +18,7 @@ export function JwtTool() {
   const skipPayloadSync = useRef(false);
 
   const { isDragging, dropProps } = useDropText((text) => decode(text.trim()));
+  const displayedSigVerified = parts?.algorithm === "HS256" && !secret ? false : sigVerified;
 
   function decode(val: string) {
     setInput(val);
@@ -123,7 +124,7 @@ export function JwtTool() {
         input={input}
         error={error}
         parts={parts}
-        sigVerified={sigVerified}
+        sigVerified={displayedSigVerified}
         isDragging={isDragging}
         dropProps={dropProps}
         onChange={decode}
@@ -156,4 +157,3 @@ export function JwtTool() {
     </div>
   );
 }
-

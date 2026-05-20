@@ -11,6 +11,11 @@ function resolveInitialTheme(): Theme {
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", theme === "dark");
   localStorage.setItem("theme", theme);
+  const color = theme === "dark" ? "#09090b" : "#ffffff";
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((el) => {
+    el.removeAttribute("media");
+    el.content = color;
+  });
 }
 
 export function useTheme() {

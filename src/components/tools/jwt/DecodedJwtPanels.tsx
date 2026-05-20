@@ -37,7 +37,7 @@ function JsonPanel({ data }: { data: object }) {
 
 function ClaimsPanel({ data }: { data: Record<string, unknown> }) {
   return (
-    <div className="p-3 space-y-2 font-mono text-sm overflow-auto">
+    <div className="p-3 space-y-1 font-mono text-sm overflow-auto">
       {Object.entries(data).map(([key, val]) => (
         <div key={key} className="flex gap-2">
           <span className="text-blue-300 min-w-[100px] shrink-0">{CLAIM_LABELS[key] ?? key}</span>
