@@ -9,9 +9,10 @@ interface CopyButtonProps {
   text: string;
   className?: string;
   withLabel?: boolean;
+  size?: "icon" | "icon-xs" | "icon-sm" | "icon-lg";
 }
 
-export function CopyButton({ text, className, withLabel }: CopyButtonProps) {
+export function CopyButton({ text, className, withLabel, size }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -23,7 +24,7 @@ export function CopyButton({ text, className, withLabel }: CopyButtonProps) {
 
   return (
     <Button
-      size={withLabel ? "sm" : "icon-xs"}
+      size={withLabel ? "sm" : (size ?? "icon")}
       variant="ghost"
       className={cn(className)}
       onClick={handleCopy}
@@ -50,7 +51,7 @@ export function CopyButton({ text, className, withLabel }: CopyButtonProps) {
             exit={{ scale: 0.5, opacity: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
           >
-            <Copy className={cn(withLabel ? "h-3.5 w-3.5" : "h-3 w-3")} />
+            <Copy className="h-3.5 w-3.5" />
             {withLabel && <span>Copy</span>}
           </motion.span>
         )}

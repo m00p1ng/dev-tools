@@ -1,5 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, lazy, Suspense } from "react";
 import { Textarea } from "@/components/ui/textarea";
+
+const CodeBlock = lazy(async () => ({ default: (await import("@/components/ui/code-block")).CodeBlock }));
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -171,7 +173,11 @@ export function QrCodeTool() {
                 <p className="text-sm font-medium">Decoded content</p>
                 <CopyButton text={readResult} withLabel />
               </div>
-              <Textarea readOnly value={readResult} className="font-mono text-xs resize-none h-24" />
+              <div className="h-24">
+                <Suspense fallback={<div className="h-full rounded-md border border-input bg-background" />}>
+                  <CodeBlock code={readResult} language="text" />
+                </Suspense>
+              </div>
             </div>
           )}
         </div>

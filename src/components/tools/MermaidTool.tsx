@@ -115,8 +115,8 @@ function DiagramViewer({
         <div className="absolute right-2 top-2 z-10 flex gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Select zoom">
-                <span className="text-[10px] font-mono">{Math.round(zoom * 100)}%</span>
+              <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Select zoom">
+                <span className="text-xs font-mono">{Math.round(zoom * 100)}%</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -127,18 +127,18 @@ function DiagramViewer({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Zoom in" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
-            <ZoomIn className="h-3 w-3" />
+          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Zoom in" onClick={() => setZoom(z => clampZoom(z + 0.1))}>
+            <ZoomIn className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Zoom out" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
-            <ZoomOut className="h-3 w-3" />
+          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Zoom out" onClick={() => setZoom(z => clampZoom(z - 0.1))}>
+            <ZoomOut className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Reset view" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
-            <RotateCcw className="h-3 w-3" />
+          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Reset view" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}>
+            <RotateCcw className="h-4 w-4" />
           </Button>
           {onFullscreen && (
-            <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Fullscreen preview" onClick={onFullscreen}>
-              <Maximize className="h-3 w-3" />
+            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Fullscreen preview" onClick={onFullscreen}>
+              <Maximize className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -309,8 +309,8 @@ export function MermaidTool() {
                 <div className="absolute bottom-2 right-2 z-10">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size="icon" variant="secondary" className="h-7 w-7 shadow-sm" aria-label="Download diagram">
-                        <Download className="h-3.5 w-3.5" />
+                      <Button size="icon" variant="secondary" className="h-9 w-9 shadow-sm" aria-label="Download diagram">
+                        <Download className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" side="top">

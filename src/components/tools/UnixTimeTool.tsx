@@ -32,16 +32,16 @@ export function UnixTimeTool() {
     <div className="flex h-full flex-col gap-6 overflow-auto">
       <div className="rounded-lg border border-border p-4">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-xs text-muted-foreground">Current Unix Timestamp</p>
+          <p className="text-sm text-muted-foreground">Current Unix Timestamp</p>
           <CopyButton text={String(now)} />
         </div>
         <p className="font-mono text-2xl font-semibold">{now}</p>
-        <p className="text-xs text-muted-foreground mt-1">{formatWithGmt(dayjs.unix(now))}</p>
+        <p className="text-sm text-muted-foreground mt-1">{formatWithGmt(dayjs.unix(now))}</p>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">Input (Unix Timestamp or Date)</p>
+          <p className="text-base font-medium">Input (Unix Timestamp or Date)</p>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setInput(String(now))}>Now</Button>
           </div>
@@ -50,7 +50,7 @@ export function UnixTimeTool() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="e.g., 1700000000 or 2023-11-15T12:00:00Z"
-          className="font-mono text-sm"
+          className="font-mono"
         />
         {error && <Badge variant="destructive" className="text-xs">{error}</Badge>}
 
@@ -75,10 +75,10 @@ export function UnixTimeTool() {
                 className={`group rounded-lg border border-border bg-card p-3 space-y-1 shadow-sm hover:border-border/60 transition-colors ${(item as { fullWidth?: boolean }).fullWidth ? "col-span-2" : ""}`}
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{item.label}</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{item.label}</p>
                   <CopyButton text={item.value} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <p className={`text-sm font-medium ${item.mono ? "font-mono" : ""} ${(item as { truncate?: boolean }).truncate ? "truncate" : ""}`}>
+                <p className={`text-base font-medium ${item.mono ? "font-mono" : ""} ${(item as { truncate?: boolean }).truncate ? "truncate" : ""}`}>
                   {item.value}
                 </p>
               </motion.div>

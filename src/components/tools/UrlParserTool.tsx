@@ -141,7 +141,7 @@ export function UrlParserTool() {
         <div className="relative">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 overflow-hidden rounded-md border border-transparent px-3 py-2 font-mono text-sm leading-6 whitespace-pre-wrap [overflow-wrap:anywhere]"
+            className="pointer-events-none absolute inset-0 overflow-hidden rounded-md border border-transparent px-3 py-2 font-mono text-base leading-6 whitespace-pre-wrap [overflow-wrap:anywhere]"
           >
             {input ? buildHighlight(input) : null}
           </div>
@@ -150,7 +150,7 @@ export function UrlParserTool() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             className={cn(
-              "relative w-full min-h-[7.5rem] resize-none rounded-md border border-input bg-transparent px-3 py-2 font-mono text-sm leading-6 shadow-xs outline-none transition-[color,box-shadow] duration-150 [overflow-wrap:anywhere]",
+              "relative w-full min-h-[7.5rem] resize-none rounded-md border border-input bg-transparent px-3 py-2 font-mono text-base leading-6 shadow-xs outline-none transition-[color,box-shadow] duration-150 [overflow-wrap:anywhere]",
               "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
               input ? "text-transparent caret-foreground" : "text-foreground",
               isDragging && "ring-2 ring-primary/50 bg-primary/5"
@@ -164,7 +164,7 @@ export function UrlParserTool() {
       {(parsed || (!input && !error)) && (
         <div className="space-y-3 overflow-auto">
           <motion.table
-            className="w-full text-sm"
+            className="w-full text-base"
             variants={listVariants}
             initial="hidden"
             animate="visible"
@@ -173,7 +173,7 @@ export function UrlParserTool() {
               {rows.map(([label, value, color, copyText]) => (
                 <motion.tr key={label} variants={itemVariants} className="group border-b border-border">
                   <td className="py-2 pr-4 font-medium text-muted-foreground w-24">{label}</td>
-                  <td className={cn("py-2 font-mono text-sm break-all flex-1", color)}>{value}</td>
+                  <td className={cn("py-2 font-mono text-base break-all flex-1", color)}>{value}</td>
                   <td className="py-2 w-8">
                     <CopyButton text={copyText} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </td>
@@ -184,9 +184,9 @@ export function UrlParserTool() {
 
           {(parsed?.params?.length ?? 0) > 0 && (
             <div>
-              <p className="text-sm font-medium mb-2">Query Parameters</p>
+              <p className="text-base font-medium mb-2">Query Parameters</p>
               <motion.table
-                className="w-full text-sm"
+                className="w-full text-base"
                 variants={listVariants}
                 initial="hidden"
                 animate="visible"
@@ -203,8 +203,8 @@ export function UrlParserTool() {
                     const color = paramColors[i % paramColors.length];
                     return (
                     <motion.tr key={k} variants={itemVariants} className="group border-b border-border">
-                      <td className={cn("py-1.5 pr-4 font-mono text-sm", color)}>{k}</td>
-                      <td className={cn("py-1.5 font-mono text-sm break-all opacity-75", color)}>{v}</td>
+                      <td className={cn("py-1.5 pr-4 font-mono text-base", color)}>{k}</td>
+                      <td className={cn("py-1.5 font-mono text-base break-all opacity-75", color)}>{v}</td>
                       <td className="py-1.5">
                         <CopyButton text={v} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                       </td>

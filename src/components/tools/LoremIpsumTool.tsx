@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Textarea } from "@/components/ui/textarea";
 import { CopyButton } from "@/components/ui/copy-button";
+
+const CodeBlock = lazy(async () => ({ default: (await import("@/components/ui/code-block")).CodeBlock }));
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { LoremIpsum } from "lorem-ipsum";
 import { motion, AnimatePresence } from "framer-motion";
@@ -80,11 +81,9 @@ export function LoremIpsumTool() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <Textarea
-            readOnly
-            value={output}
-            className="h-full resize-none text-sm font-mono"
-          />
+          <Suspense fallback={<div className="h-full rounded-md border border-input bg-background" />}>
+            <CodeBlock code={output} language="text" />
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </ToolSidebarLayout>

@@ -10,6 +10,7 @@ export function JsonToCsvTool() {
       outputPlaceholder="CSV output..."
       example={'[{"name":"Alice","age":30},{"name":"Bob","age":25}]'}
       transform={(input) => jsonToCsv(input)}
+      outputLanguage="plaintext"
       gap={1}
     />
   );

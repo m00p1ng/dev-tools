@@ -15,11 +15,11 @@ export interface JwtParts {
   algorithm: string;
 }
 
-export function base64urlToBytes(b64url: string): Uint8Array {
+export function base64urlToBytes(b64url: string): Uint8Array<ArrayBuffer> {
   const b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
   const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
   const raw = atob(padded);
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0)) as Uint8Array<ArrayBuffer>;
 }
 
 export function base64urlEncode(str: string): string {
@@ -66,16 +66,16 @@ export async function verifyHS256(token: string, secret: string, isBase64url: bo
   try {
     const [header, payload, sig] = token.split(".");
     if (!header || !payload || !sig) return false;
-    const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret);
+    const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret) as Uint8Array<ArrayBuffer>;
     const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    return crypto.subtle.verify("HMAC", key, base64urlToBytes(sig), new TextEncoder().encode(`${header}.${payload}`));
+    return crypto.subtle.verify("HMAC", key, base64urlToBytes(sig), new TextEncoder().encode(`${header}.${payload}`) as Uint8Array<ArrayBuffer>);
   } catch {
     return false;
   }
 }
 
 export async function signHS256(signingInput: string, secret: string, isBase64url: boolean): Promise<string> {
-  const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret);
+  const keyBytes = isBase64url ? base64urlToBytes(secret) : new TextEncoder().encode(secret) as Uint8Array<ArrayBuffer>;
   const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
   return btoa(String.fromCharCode(...new Uint8Array(sig)))

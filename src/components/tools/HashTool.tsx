@@ -45,7 +45,7 @@ export function HashTool() {
             placeholder="Enter text to hash… or drop a file"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
+            className={cn("flex-1 resize-none font-mono text-sm transition-all duration-150",
               isDragging && "ring-2 ring-primary/50 bg-primary/5")}
             {...dropProps}
           />
@@ -66,7 +66,7 @@ export function HashTool() {
                       <Badge variant="outline" className="text-xs">{algo}</Badge>
                       {input && <CopyButton text={results[algo]} />}
                     </div>
-                    <p className="font-mono text-sm break-all text-muted-foreground">
+                    <p className="font-mono text-base break-all text-muted-foreground">
                       {input ? results[algo] : "—"}
                     </p>
                   </div>

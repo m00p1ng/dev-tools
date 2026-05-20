@@ -20,7 +20,7 @@ export function JsonFormatTool() {
       outputLanguage="json"
       renderMeta={(meta) =>
         meta.repaired ? (
-          <Badge variant="outline" className="self-start border-yellow-400 text-xs text-yellow-600">
+          <Badge variant="outline" className="border-yellow-400 text-xs text-yellow-600">
             Auto-repaired
           </Badge>
         ) : null

@@ -1,6 +1,16 @@
-import { CopyButton } from "@/components/ui/copy-button";
+import { useSyncExternalStore } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+function subscribe(cb: () => void) {
+  const observer = new MutationObserver(cb);
+  observer.observe(document.documentElement, { attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+
+function isDarkMode() {
+  return document.documentElement.classList.contains("dark");
+}
 
 interface CodeBlockProps {
   code: string;
@@ -9,9 +19,10 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
+  const dark = useSyncExternalStore(subscribe, isDarkMode, () => false);
   if (!code) {
     return (
-      <div className="h-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground font-mono">
+      <div className="h-full rounded-md border border-input bg-background px-3 py-2 text-base text-muted-foreground font-mono">
         {placeholder}
       </div>
     );
@@ -19,15 +30,14 @@ export function CodeBlock({ code, language, placeholder }: CodeBlockProps) {
 
   return (
     <div className="relative h-full overflow-auto rounded-md border border-input bg-background">
-      <CopyButton text={code} className="absolute right-2 top-2 z-10" />
       <SyntaxHighlighter
         language={language}
-        style={oneLight}
+        style={dark ? oneDark : oneLight}
         customStyle={{
           margin: 0,
           padding: "0.5rem 0.75rem",
           background: "transparent",
-          fontSize: "0.875rem",
+          fontSize: "1rem",
           lineHeight: "1.5",
           minHeight: "100%",
         }}

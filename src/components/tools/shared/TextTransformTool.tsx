@@ -82,7 +82,6 @@ export function TextTransformTool<TMode extends string = "default", M = undefine
   return (
     <ToolLayout>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
-      {meta && renderMeta?.(meta)}
       <ToolPanels>
         <ToolPane gap={gap}>
           <ToolToolbar
@@ -100,35 +99,31 @@ export function TextTransformTool<TMode extends string = "default", M = undefine
             value={input}
             onChange={(event) => setInput(event.target.value)}
             className={cn(
-              "flex-1 resize-none font-mono text-xs transition-all duration-150",
+              "flex-1 resize-none font-mono transition-all duration-150",
               isDragging && "ring-2 ring-primary/50 bg-primary/5",
             )}
             {...dropProps}
           />
         </ToolPane>
-        <ToolOutputPane gap={gap}>
+        <ToolOutputPane
+          gap={gap}
+          header={
+            <div className="flex w-full items-center justify-between">
+              <div>{meta ? renderMeta?.(meta) : null}</div>
+              {output && <CopyButton text={output} />}
+            </div>
+          }
+        >
           <div className="relative flex-1 min-h-0">
-            {outputLanguage ? (
-              <Suspense
-                fallback={
-                  <div className="h-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-muted-foreground">
-                    {outputPlaceholder}
-                  </div>
-                }
-              >
-                <CodeBlock code={output} language={outputLanguage} placeholder={outputPlaceholder} />
-              </Suspense>
-            ) : (
-              <>
-                <Textarea
-                  readOnly
-                  value={output}
-                  placeholder={outputPlaceholder}
-                  className="h-full resize-none font-mono text-xs"
-                />
-                {output && <CopyButton text={output} className="absolute right-2 top-2" />}
-              </>
-            )}
+            <Suspense
+              fallback={
+                <div className="h-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-muted-foreground">
+                  {outputPlaceholder}
+                </div>
+              }
+            >
+              <CodeBlock code={output} language={outputLanguage ?? "text"} placeholder={outputPlaceholder} />
+            </Suspense>
           </div>
         </ToolOutputPane>
       </ToolPanels>

@@ -31,8 +31,8 @@ export function generateRandomString(length: number, charset: string, symbolChar
     return Array.from(rands.slice(0, length), (b) => randomChar(charset, b)).join("");
   }
 
-  const escapedSymbols = symbolCharset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const nonSymbol = charset.replace(new RegExp(`[${escapedSymbols}]`, "g"), "");
+  const symbolSet = new Set(symbolCharset);
+  const nonSymbol = charset.split("").filter((c) => !symbolSet.has(c)).join("");
   const minSymbols = Math.max(1, Math.floor(length * 0.1));
   const maxSymbols = Math.max(minSymbols, Math.floor(length * 0.2));
   const symbolCount = minSymbols + (rands[length] % (maxSymbols - minSymbols + 1));
