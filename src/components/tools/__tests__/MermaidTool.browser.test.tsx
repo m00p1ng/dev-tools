@@ -27,7 +27,7 @@ test("Syntax link is visible", async () => {
 
 test("Clear button empties the editor", async () => {
   const screen = await render(<MermaidTool />);
-  await screen.getByRole("textbox").fill("");
+  await screen.getByRole("button", { name: "Clear" }).click();
   await expect.element(screen.getByText("Diagram will appear here...")).toBeVisible();
 });
 
@@ -141,6 +141,89 @@ test("zoom dropdown opens and sets zoom to a preset", async () => {
     const btn = Array.from(document.querySelectorAll("button")).find((b) => b.textContent?.trim() === "200%");
     expect(btn).not.toBeNull();
   }, { timeout: 2000 });
+});
+
+test("fullscreen preview opens and closes with Escape", async () => {
+  const screen = await render(<MermaidTool />);
+  await expect.element(screen.getByRole("button", { name: "Fullscreen preview" })).toBeVisible();
+  await screen.getByRole("button", { name: "Fullscreen preview" }).click();
+  await expect.element(screen.getByText("Diagram Preview")).toBeVisible();
+
+  window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  await vi.waitFor(() => {
+    expect(screen.getByText("Diagram Preview").elements()).toHaveLength(0);
+  });
+});
+
+test("fullscreen SVG download option triggers download", async () => {
+  const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fullscreen");
+  const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+  const screen = await render(<MermaidTool />);
+
+  await expect.element(screen.getByRole("button", { name: "Fullscreen preview" })).toBeVisible();
+  await screen.getByRole("button", { name: "Fullscreen preview" }).click();
+  await expect.element(screen.getByText("Diagram Preview")).toBeVisible();
+
+  const downloadButtons = Array.from(document.querySelectorAll("button[aria-label='Download diagram']"));
+  openDropdown(downloadButtons[downloadButtons.length - 1] as HTMLElement);
+  await vi.waitFor(() => {
+    expect(document.querySelectorAll("[role='menuitem']").length).toBeGreaterThan(0);
+  });
+  const svgItem = Array.from(document.querySelectorAll("[role='menuitem']")).find(
+    (el) => el.textContent?.trim() === "SVG",
+  ) as HTMLElement | undefined;
+  svgItem?.click();
+
+  await vi.waitFor(() => expect(createObjectURL).toHaveBeenCalled(), { timeout: 2000 });
+  createObjectURL.mockRestore();
+  revokeObjectURL.mockRestore();
+});
+
+test.each([
+  ["PNG", "image/png"],
+  ["JPG", "image/jpeg"],
+])("fullscreen %s download renders the SVG to a canvas", async (format, mimeType) => {
+  const originalImage = window.Image;
+  class MockImage {
+    onload: (() => void) | null = null;
+    set src(_value: string) {
+      queueMicrotask(() => this.onload?.());
+    }
+  }
+
+  vi.stubGlobal("Image", MockImage);
+  const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+    fillStyle: "",
+    fillRect: vi.fn(),
+    scale: vi.fn(),
+    drawImage: vi.fn(),
+  } as unknown as CanvasRenderingContext2D);
+  const toDataUrlSpy = vi
+    .spyOn(HTMLCanvasElement.prototype, "toDataURL")
+    .mockReturnValue(`data:${mimeType};base64,fullscreen`);
+  const screen = await render(<MermaidTool />);
+
+  await expect.element(screen.getByRole("button", { name: "Fullscreen preview" })).toBeVisible();
+  await screen.getByRole("button", { name: "Fullscreen preview" }).click();
+  const downloadButtons = Array.from(document.querySelectorAll("button[aria-label='Download diagram']"));
+  openDropdown(downloadButtons[downloadButtons.length - 1] as HTMLElement);
+  await vi.waitFor(() => {
+    expect(document.querySelectorAll("[role='menuitem']").length).toBeGreaterThan(0);
+  });
+
+  const item = Array.from(document.querySelectorAll("[role='menuitem']")).find(
+    (el) => el.textContent?.trim() === format,
+  ) as HTMLElement | undefined;
+  item?.click();
+
+  await vi.waitFor(() => expect(toDataUrlSpy).toHaveBeenCalledWith(mimeType, 0.95), { timeout: 2000 });
+  expect(clickSpy).toHaveBeenCalled();
+
+  vi.stubGlobal("Image", originalImage);
+  clickSpy.mockRestore();
+  getContextSpy.mockRestore();
+  toDataUrlSpy.mockRestore();
 });
 
 test("download dropdown opens with PNG/JPG/SVG options", async () => {

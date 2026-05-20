@@ -6,6 +6,7 @@ beforeEach(() => {
   vi.unstubAllGlobals();
   localStorage.clear();
   document.documentElement.classList.remove("dark");
+  history.replaceState(null, "", "/");
   Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 1024 });
 });
 
@@ -14,6 +15,22 @@ test("renders the app header with tool title", async () => {
   const screen = await render(<App />);
   // The h1 in the header shows the active tool label
   await expect.element(screen.getByRole("heading")).toBeVisible();
+});
+
+test("uses a valid tool query parameter as the initial tool", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  history.replaceState(null, "", "/?tool=cron");
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole("heading", { name: "Cron Parser" })).toBeVisible();
+});
+
+test("falls back when the tool query parameter is invalid", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  history.replaceState(null, "", "/?tool=missing");
+  const screen = await render(<App />);
+
+  await expect.element(screen.getByRole("heading", { name: "Unix Time Converter" })).toBeVisible();
 });
 
 test("shows onboarding when not seen before", async () => {
@@ -57,6 +74,58 @@ test("sidebar toggle button hides sidebar", async () => {
   await vi.waitFor(() => {
     expect(document.querySelector("nav")).toBeNull();
   }, { timeout: 3000 });
+});
+
+test("mobile sidebar opens as an overlay and closes from the backdrop", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 500 });
+  await render(<App />);
+
+  expect(document.querySelector("nav")).toBeNull();
+  const toggleBtn = document.querySelector("header button") as HTMLElement;
+  toggleBtn.click();
+
+  await vi.waitFor(() => {
+    expect(document.querySelector("nav")).not.toBeNull();
+    const backdrop = Array.from(document.querySelectorAll("div")).find((el) =>
+      el.className.toString().includes("bg-black/50"),
+    );
+    expect(backdrop).not.toBeUndefined();
+    (backdrop as HTMLElement).click();
+  });
+
+  await vi.waitFor(() => {
+    expect(document.querySelector("nav")).toBeNull();
+  }, { timeout: 3000 });
+});
+
+test("selecting a mobile overlay tool closes the sidebar and updates the URL", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 500 });
+  const screen = await render(<App />);
+
+  (document.querySelector("header button") as HTMLElement).click();
+  await expect.element(screen.getByPlaceholder("Search tools...")).toBeVisible();
+  await screen.getByPlaceholder("Search tools...").fill("cron");
+  await screen.getByText("Cron Parser").click();
+
+  await vi.waitFor(() => {
+    expect(document.querySelector("nav")).toBeNull();
+    expect(window.location.search).toContain("tool=cron");
+  });
+});
+
+test("full width toggle changes the content wrapper", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  const screen = await render(<App />);
+  const wrapper = document.querySelector("main > div") as HTMLElement;
+
+  expect(wrapper.className).toContain("max-w-4xl");
+  await screen.getByTitle("Full width").click();
+  await vi.waitFor(() => {
+    expect(wrapper.className).not.toContain("max-w-4xl");
+  });
+  await expect.element(screen.getByTitle("Constrain width")).toBeVisible();
 });
 
 test("sidebar auto hides on mobile resize and shows on desktop resize", async () => {

@@ -16,6 +16,7 @@ function Fixture() {
 beforeEach(() => {
   localStorage.clear();
   document.documentElement.classList.remove("dark");
+  document.querySelectorAll('meta[name="theme-color"]').forEach((el) => el.remove());
 });
 
 test("reads persisted dark theme from localStorage", async () => {
@@ -37,6 +38,21 @@ test("switching to dark adds dark class and persists to localStorage", async () 
   await expect.element(screen.getByText("active:dark")).toBeVisible();
   expect(document.documentElement.classList.contains("dark")).toBe(true);
   expect(localStorage.getItem("theme")).toBe("dark");
+});
+
+test("switching theme updates existing theme-color meta tags", async () => {
+  localStorage.setItem("theme", "light");
+  const meta = document.createElement("meta");
+  meta.name = "theme-color";
+  meta.media = "(prefers-color-scheme: dark)";
+  document.head.append(meta);
+
+  const screen = await render(<Fixture />);
+  await screen.getByRole("button", { name: "switch-dark" }).click();
+
+  await expect.element(screen.getByText("active:dark")).toBeVisible();
+  expect(meta.getAttribute("media")).toBeNull();
+  expect(meta.content).toBe("#09090b");
 });
 
 test("switching to light removes dark class and persists to localStorage", async () => {
