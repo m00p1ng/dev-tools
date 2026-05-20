@@ -182,7 +182,7 @@ export function UrlParserTool() {
             </tbody>
           </motion.table>
 
-          {parsed?.params.length > 0 && (
+          {(parsed?.params?.length ?? 0) > 0 && (
             <div>
               <p className="text-sm font-medium mb-2">Query Parameters</p>
               <motion.table
@@ -199,7 +199,7 @@ export function UrlParserTool() {
                   </tr>
                 </thead>
                 <tbody>
-                  {parsed.params.map(([k, v], i) => {
+                  {parsed?.params.map(([k, v], i) => {
                     const color = paramColors[i % paramColors.length];
                     return (
                     <motion.tr key={k} variants={itemVariants} className="group border-b border-border">
