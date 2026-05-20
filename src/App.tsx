@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToolContent } from "@/components/ToolContent";
 import { Onboarding } from "@/components/Onboarding";
 import { TOOLS } from "@/tools";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { useFontSize } from "@/hooks/useFontSize";
@@ -24,6 +24,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [sidebarOverlay, setSidebarOverlay] = useState(() => window.innerWidth < 768);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage<boolean>("onboarding-v1", false);
+  const [fullWidth, setFullWidth] = useLocalStorage<boolean>("full-width", false);
   const { theme } = useTheme();
   useFontSize();
 
@@ -132,7 +133,10 @@ export default function App() {
             </motion.h1>
           </AnimatePresence>
 
-          <div className="flex flex-1 justify-end">
+          <div className="flex flex-1 justify-end items-center gap-1">
+            <Button variant="ghost" size="icon-xs" onClick={() => setFullWidth((v) => !v)} title={fullWidth ? "Constrain width" : "Full width"}>
+              {fullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+            </Button>
             <ThemeToggle />
           </div>
         </header>
@@ -145,7 +149,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="h-full w-full max-w-4xl mx-auto"
+              className={fullWidth ? "h-full w-full" : "h-full w-full max-w-4xl mx-auto"}
             >
               <ToolContent toolId={activeTool} />
             </motion.div>

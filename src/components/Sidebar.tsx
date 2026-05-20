@@ -226,7 +226,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
         overlay ? "safe-area-sidebar h-full" : "h-full"
       )}
     >
-      <div className="px-3 py-2">
+      <div className="px-3 pt-4 pb-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input

@@ -112,6 +112,7 @@ export function JwtTokenInput({
       <div className="flex flex-col flex-1 border border-border rounded-md overflow-hidden">
         <div className="px-3 py-1.5 border-b border-border bg-muted/40 flex items-center justify-between">
           <span className="text-sm font-semibold text-muted-foreground py-0.5">JSON Web Token (JWT)</span>
+          {input && <CopyButton text={input} />}
         </div>
 
         <div className="p-3 flex flex-col flex-1 gap-2">
@@ -132,11 +133,6 @@ export function JwtTokenInput({
               spellCheck={false}
               {...dropProps}
             />
-            {input && (
-              <div className="absolute bottom-2 right-2 z-10">
-                <CopyButton text={input} />
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-1">
