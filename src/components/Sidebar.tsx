@@ -28,6 +28,7 @@ import {
   Table,
   TableProperties,
   Timer,
+  Pipette,
   type LucideProps,
 } from "lucide-react";
 
@@ -56,6 +57,7 @@ const TOOL_ICONS: Record<string, React.FC<LucideProps>> = {
   Table,
   TableProperties,
   Timer,
+  Pipette,
 };
 
 function ToolIcon({ name, ...props }: { name: string } & LucideProps) {

@@ -23,6 +23,7 @@ export const TOOLS: Tool[] = [
 
   { id: "url-parser", label: "URL Parser", description: "Parse URLs into their constituent parts", icon: "Globe", color: "text-teal-500", group: "Web" },
   { id: "mermaid", label: "Mermaid Diagram", description: "Render Mermaid diagrams from text", icon: "GitFork", color: "text-sky-500", group: "Web" },
+  { id: "color-picker", label: "Color Picker", description: "Pick and convert colors between HEX, RGB, HSL, HSV, and OKLCH", icon: "Pipette", color: "text-pink-400", group: "Web" },
 
   { id: "jwt", label: "JWT Debugger", description: "Decode and inspect JSON Web Tokens", icon: "KeyRound", color: "text-rose-500", group: "Security" },
   { id: "hash", label: "Hash Generator", description: "Generate MD5, SHA-1, SHA-256, SHA-512 hashes", icon: "Hash", color: "text-red-500", group: "Security" },

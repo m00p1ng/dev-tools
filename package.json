@@ -16,6 +16,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "colord": "^2.9.3",
     "cron-parser": "^5.5.0",
     "cronstrue": "^3.14.0",
     "crypto-js": "^4.2.0",

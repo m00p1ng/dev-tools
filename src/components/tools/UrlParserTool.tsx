@@ -161,7 +161,7 @@ export function UrlParserTool() {
       </div>
       {error && <Badge variant="destructive" className="self-start text-xs">{error}</Badge>}
 
-      {(parsed || (!input && !error)) && (
+      {parsed && (
         <div className="space-y-3 overflow-auto">
           <motion.table
             className="w-full text-base"

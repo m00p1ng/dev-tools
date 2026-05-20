@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState } from "react";
+import { Pipette } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
@@ -11,6 +12,8 @@ import {
   parseHex, parseRgb, parseHsl, parseHsvStr, parseOklch,
   hsvToHex, rgbToHsv,
 } from "@/lib/tool-logic/color";
+
+const SAVED_SLOTS = 16;
 
 const CANVAS_SIZE = 512;
 const RADIUS = CANVAS_SIZE / 2 - 1;
@@ -67,11 +70,21 @@ function FormatRow({ label, value, onCommit }: FormatRowProps) {
 }
 
 export function ColorPickerTool() {
-  const [hsv, setHsv] = useLocalStorage<Hsv>("tool:color-picker", { h: 210, s: 75, v: 90 });
+  const [hsv, setHsv] = useLocalStorage<Hsv>("tool:color-picker", { h: 210, s: 75, v: 90, a: 100 });
+  const [rawSavedColors, setSavedColors] = useLocalStorage<(string | null)[]>(
+    "tool:color-picker:saved",
+    Array(SAVED_SLOTS).fill(null),
+  );
+  const savedColors = rawSavedColors.length >= SAVED_SLOTS
+    ? rawSavedColors
+    : [...rawSavedColors, ...Array(SAVED_SLOTS - rawSavedColors.length).fill(null)];
+  const [hasEyeDropper] = useState(() => "EyeDropper" in window);
+  const [animatingSlot, setAnimatingSlot] = useState<number | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
   const brightnessRef = useRef<HTMLDivElement>(null);
+  const opacityRef = useRef<HTMLDivElement>(null);
 
   // Redraw wheel when brightness changes (hue/sat only move cursor, no redraw needed)
   useEffect(() => {
@@ -127,6 +140,16 @@ export function ColorPickerTool() {
     pickFromWheel(e.clientX, e.clientY);
   }, [pickFromWheel]);
 
+  const handleWheelDoubleClick = useCallback(() => {
+    const idx = savedColors.findIndex((c) => !c);
+    if (idx === -1) return;
+    const next = [...savedColors];
+    next[idx] = formatHex(hsv);
+    setSavedColors(next);
+    setAnimatingSlot(idx);
+    setTimeout(() => setAnimatingSlot(null), 350);
+  }, [savedColors, hsv, setSavedColors]);
+
   // Brightness slider handlers
   const pickBrightness = useCallback((clientX: number) => {
     const el = brightnessRef.current;
@@ -145,6 +168,25 @@ export function ColorPickerTool() {
     if (!e.buttons) return;
     pickBrightness(e.clientX);
   }, [pickBrightness]);
+
+  // Opacity slider handlers
+  const pickOpacity = useCallback((clientX: number) => {
+    const el = opacityRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const a = Math.round(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
+    setHsv({ ...hsv, a });
+  }, [hsv, setHsv]);
+
+  const handleOpacityDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    pickOpacity(e.clientX);
+  }, [pickOpacity]);
+
+  const handleOpacityMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.buttons) return;
+    pickOpacity(e.clientX);
+  }, [pickOpacity]);
 
   // Cursor position as % of container
   const angleRad = hsv.h * Math.PI / 180;
@@ -168,6 +210,35 @@ export function ColorPickerTool() {
     return true;
   };
 
+  const handleSavedSlotClick = (i: number) => {
+    const color = savedColors[i];
+    if (color) {
+      const rgb = parseHex(color);
+      if (rgb) setHsv(rgbToHsv(rgb));
+    } else {
+      const next = [...savedColors];
+      next[i] = formatHex(hsv);
+      setSavedColors(next);
+      setAnimatingSlot(i);
+      setTimeout(() => setAnimatingSlot(null), 350);
+    }
+  };
+
+  const handleSavedSlotClear = (e: React.MouseEvent, i: number) => {
+    e.preventDefault();
+    const next = [...savedColors];
+    next[i] = null;
+    setSavedColors(next);
+  };
+
+  const handleEyeDropper = async () => {
+    try {
+      const { sRGBHex } = await new (window as any).EyeDropper().open();
+      const rgb = parseHex(sRGBHex);
+      if (rgb) setHsv(rgbToHsv(rgb));
+    } catch {}
+  };
+
   return (
     <ToolSidebarLayout>
       <ToolSidebar>
@@ -177,6 +248,7 @@ export function ColorPickerTool() {
           className="relative w-full aspect-square cursor-crosshair touch-none select-none"
           onPointerDown={handleWheelDown}
           onPointerMove={handleWheelMove}
+          onDoubleClick={handleWheelDoubleClick}
         >
           <canvas ref={canvasRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="w-full h-full" />
           {/* Crosshair cursor */}
@@ -199,21 +271,82 @@ export function ColorPickerTool() {
           onPointerMove={handleBrightnessMove}
         >
           <div
-            className="absolute top-1/2 w-5 h-5 rounded-full border-2 border-white pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            className="absolute top-1/2 w-5 h-5 rounded-full border-2 border-white pointer-events-none -translate-x-1/2 -translate-y-1/2 transition-[background-color] duration-150"
             style={{
-              left: `${hsv.v}%`,
+              left: `calc(clamp(10px, ${hsv.v}%, 100% - 10px))`,
               background: hexColor,
               boxShadow: "0 0 0 1px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.3)",
             }}
           />
         </div>
 
-        {/* Swatch */}
-        <div className="w-full h-14 rounded-lg border border-border" style={{ background: hexColor }} />
+        {/* Opacity slider */}
+        <div
+          ref={opacityRef}
+          className="relative h-5 w-full rounded-full cursor-pointer select-none touch-none overflow-hidden"
+          style={{
+            backgroundImage: `linear-gradient(to right, transparent, ${hexColor}), repeating-conic-gradient(#aaa 0% 25%, #fff 0% 50%)`,
+            backgroundSize: "100% 100%, 10px 10px",
+          }}
+          onPointerDown={handleOpacityDown}
+          onPointerMove={handleOpacityMove}
+        >
+          <div
+            className="absolute top-1/2 w-5 h-5 rounded-full border-2 border-white pointer-events-none -translate-x-1/2 -translate-y-1/2 transition-[background-color] duration-150"
+            style={{
+              left: `calc(clamp(10px, ${hsv.a ?? 100}%, 100% - 10px))`,
+              background: hexColor,
+              boxShadow: "0 0 0 1px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.3)",
+            }}
+          />
+        </div>
+
+        {/* Bottom: swatch + eyedropper + saved slots */}
+        <div className="flex items-center gap-2">
+          {/* Current color swatch */}
+          <div
+            className="w-10 h-10 shrink-0 rounded-md border border-border overflow-hidden"
+            style={{ background: "repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 8px 8px" }}
+          >
+            <div className="w-full h-full transition-[background] duration-200" style={{ background: formatRgb(hsv) }} />
+          </div>
+
+          {/* Eyedropper */}
+          {hasEyeDropper && (
+            <button
+              onClick={handleEyeDropper}
+              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-md border border-border hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+              title="Pick color from screen"
+            >
+              <Pipette className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Saved color slots */}
+          <div className="grid grid-cols-8 gap-1 flex-1">
+            {savedColors.map((color, i) => (
+              <div
+                key={i}
+                onClick={() => handleSavedSlotClick(i)}
+                onContextMenu={(e) => handleSavedSlotClear(e, i)}
+                title={color ? `${color} — click to load, right-click to clear` : "Click to save current color"}
+                className={cn(
+                  "w-6 h-6 rounded border cursor-pointer overflow-hidden transition-all duration-200 active:scale-90",
+                  animatingSlot === i && "scale-125",
+                  color ? "border-border hover:ring-1 hover:ring-ring" : "border-dashed border-muted-foreground/70 bg-muted/40 hover:bg-muted hover:border-muted-foreground",
+                )}
+                style={color ? {
+                  backgroundImage: `linear-gradient(${color}, ${color}), repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%)`,
+                  backgroundSize: "100% 100%, 6px 6px",
+                } : undefined}
+              />
+            ))}
+          </div>
+        </div>
       </ToolSidebar>
 
       {/* Format cards */}
-      <div className="flex flex-col gap-2 min-h-0 overflow-auto">
+      <div className="flex flex-col gap-2 min-h-0 overflow-auto flex-1 min-w-0">
         <FormatRow label="HEX"   value={formatHex(hsv)}   onCommit={commitWith(parseHex)} />
         <FormatRow label="RGB"   value={formatRgb(hsv)}   onCommit={commitWith(parseRgb)} />
         <FormatRow label="HSL"   value={formatHsl(hsv)}   onCommit={commitWith(parseHsl)} />

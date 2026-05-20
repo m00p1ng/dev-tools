@@ -27,7 +27,7 @@ export function ToolPane({ children, gap = 2, className }: PaneProps) {
 export function ToolOutputPane({ children, gap = 2, className, header }: PaneProps & { header?: React.ReactNode }) {
   return (
     <ToolPane gap={gap} className={className}>
-      <div className="hidden lg:flex lg:items-center h-8 shrink-0" aria-hidden={!header}>
+      <div className="flex items-center h-8 shrink-0" aria-hidden={!header}>
         {header}
       </div>
       {children}
