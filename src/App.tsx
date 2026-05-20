@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Toaster } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
@@ -13,6 +13,8 @@ import { useFontSize } from "@/hooks/useFontSize";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
+const SIDEBAR_WIDTH = 288;
+
 export default function App() {
   const isMobile = useIsMobile();
   const [activeTool, setActiveTool] = useState(() => {
@@ -20,9 +22,25 @@ export default function App() {
     return TOOLS.find((t) => t.id === param)?.id ?? TOOLS[0].id;
   });
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [sidebarOverlay, setSidebarOverlay] = useState(() => window.innerWidth < 768);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useLocalStorage<boolean>("onboarding-v1", false);
   const { theme } = useTheme();
   useFontSize();
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handleResize = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOverlay(false);
+        setSidebarOpen(true);
+      }
+    };
+
+    mq.addEventListener("change", handleResize);
+    return () => mq.removeEventListener("change", handleResize);
+  }, []);
 
   const handleOnboardingComplete = (toolId?: string) => {
     setHasSeenOnboarding(true);
@@ -37,6 +55,11 @@ export default function App() {
     if (isMobile) setSidebarOpen(false);
   };
 
+  const handleSidebarToggle = () => {
+    setSidebarOverlay(isMobile);
+    setSidebarOpen((v) => !v);
+  };
+
   const tool = TOOLS.find((t) => t.id === activeTool) ?? TOOLS[0];
 
   return (
@@ -45,7 +68,7 @@ export default function App() {
       <Toaster position="bottom-right" theme={theme} />
 
       <AnimatePresence initial={false}>
-        {sidebarOpen && isMobile && (
+        {sidebarOpen && sidebarOverlay && (
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -62,12 +85,16 @@ export default function App() {
         {sidebarOpen && (
           <motion.div
             key="sidebar"
-            initial={{ x: -288, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -288, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            style={{ flexShrink: 0 }}
-            className={isMobile ? "fixed inset-y-0 left-0 z-50" : undefined}
+            initial={{ width: sidebarOverlay ? SIDEBAR_WIDTH : 0, x: -SIDEBAR_WIDTH, opacity: 0 }}
+            animate={{ width: SIDEBAR_WIDTH, x: 0, opacity: 1 }}
+            exit={{ width: sidebarOverlay ? SIDEBAR_WIDTH : 0, x: -SIDEBAR_WIDTH, opacity: 0 }}
+            transition={{
+              width: { duration: 0.24, ease: "easeInOut" },
+              x: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.18 },
+            }}
+            style={{ flexShrink: 0, overflow: "hidden" }}
+            className={sidebarOverlay ? "fixed inset-y-0 left-0 z-50" : undefined}
           >
             <Sidebar activeTool={activeTool} onSelect={handleToolSelect} />
           </motion.div>
@@ -77,7 +104,7 @@ export default function App() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="sticky top-0 z-10 flex h-10 flex-shrink-0 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon-xs" onClick={() => setSidebarOpen((v) => !v)}>
+            <Button variant="ghost" size="icon-xs" onClick={handleSidebarToggle}>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={sidebarOpen ? "close" : "open"}

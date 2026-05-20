@@ -5,6 +5,11 @@
     height: 100%;
     overflow: hidden;
   }
+
+  html,
+  body {
+    background: #09090b;
+  }
 }
 
 /* Prism token colors — light */

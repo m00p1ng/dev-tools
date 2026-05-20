@@ -3,8 +3,10 @@ import { render } from "vitest-browser-react";
 import App from "../App";
 
 beforeEach(() => {
+  vi.unstubAllGlobals();
   localStorage.clear();
   document.documentElement.classList.remove("dark");
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 1024 });
 });
 
 test("renders the app header with tool title", async () => {
@@ -54,6 +56,51 @@ test("sidebar toggle button hides sidebar", async () => {
   toggleBtn?.click();
   await vi.waitFor(() => {
     expect(document.querySelector("nav")).toBeNull();
+  }, { timeout: 3000 });
+});
+
+test("sidebar auto hides on mobile resize and shows on desktop resize", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  const listeners = new Set<(event: MediaQueryListEvent) => void>();
+
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn().mockImplementation((media: string) => ({
+      matches: false,
+      media,
+      onchange: null,
+      addEventListener: (_event: string, listener: (event: MediaQueryListEvent) => void) => {
+        listeners.add(listener);
+      },
+      removeEventListener: (_event: string, listener: (event: MediaQueryListEvent) => void) => {
+        listeners.delete(listener);
+      },
+      addListener: (listener: (event: MediaQueryListEvent) => void) => {
+        listeners.add(listener);
+      },
+      removeListener: (listener: (event: MediaQueryListEvent) => void) => {
+        listeners.delete(listener);
+      },
+      dispatchEvent: () => true,
+    }))
+  );
+
+  await render(<App />);
+  expect(document.querySelector("nav")).not.toBeNull();
+  await vi.waitFor(() => expect(listeners.size).toBeGreaterThan(0));
+
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 500 });
+  listeners.forEach((listener) => listener({ matches: true } as MediaQueryListEvent));
+
+  await vi.waitFor(() => {
+    expect(document.querySelector("nav")).toBeNull();
+  }, { timeout: 3000 });
+
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 1024 });
+  listeners.forEach((listener) => listener({ matches: false } as MediaQueryListEvent));
+
+  await vi.waitFor(() => {
+    expect(document.querySelector("nav")).not.toBeNull();
   }, { timeout: 3000 });
 });
 
