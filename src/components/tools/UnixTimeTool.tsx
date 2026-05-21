@@ -75,7 +75,7 @@ export function UnixTimeTool() {
                 className={`group rounded-lg border border-border bg-card p-3 space-y-1 shadow-sm hover:border-border/60 transition-colors ${(item as { fullWidth?: boolean }).fullWidth ? "col-span-2" : ""}`}
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{item.label}</p>
+                  <p className="text-sm uppercase tracking-wider text-muted-foreground font-semibold">{item.label}</p>
                   <CopyButton text={item.value} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <p className={`text-base font-medium ${item.mono ? "font-mono" : ""} ${(item as { truncate?: boolean }).truncate ? "truncate" : ""}`}>

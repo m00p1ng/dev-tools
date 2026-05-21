@@ -97,6 +97,7 @@ const itemVariants = {
 
 export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps) {
   const [query, setQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [showManage, setShowManage] = useState(false);
   const { favorites, hiddenTools, toggleFav, toggleHidden, resetHidden } = useSidebarSettings();
 
@@ -121,19 +122,20 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
     .map((id) => toolMap.get(id))
     .filter((t) => t && !hiddenSet.has(t.id)) as (typeof TOOLS)[number][];
   const isSearching = query.length > 0;
-  const nonFavFiltered = isSearching
+  const isSearchActive = isSearching || searchFocused;
+  const nonFavFiltered = isSearchActive
     ? filtered
     : filtered.filter((t) => !favSet.has(t.id));
 
-  const groups = isSearching
+  const groups = isSearchActive
     ? null
     : Array.from(
-        nonFavFiltered.reduce((acc, t) => {
-          if (!acc.has(t.group)) acc.set(t.group, []);
-          acc.get(t.group)!.push(t);
-          return acc;
-        }, new Map<string, (typeof TOOLS)[number][]>())
-      );
+      nonFavFiltered.reduce((acc, t) => {
+        if (!acc.has(t.group)) acc.set(t.group, []);
+        acc.get(t.group)!.push(t);
+        return acc;
+      }, new Map<string, (typeof TOOLS)[number][]>())
+    );
 
   const allGroups = Array.from(
     TOOLS.reduce((acc, t) => {
@@ -157,6 +159,8 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
             placeholder="Search tools..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
             className="h-8 pl-8 text-xs"
             disabled={showManage}
           />
@@ -192,7 +196,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
             <ScrollArea className="flex-1 min-h-0">
               <nav className="px-2 pb-4">
                 <AnimatePresence initial={false}>
-                  {!isSearching && favTools.length > 0 && (
+                  {!isSearchActive && favTools.length > 0 && (
                     <motion.div
                       key="favorites-section"
                       initial={{ opacity: 0, height: 0 }}
@@ -222,7 +226,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
                   )}
                 </AnimatePresence>
 
-                {nonFavFiltered.length === 0 && (!isSearching ? favTools.length === 0 : true) ? (
+                {nonFavFiltered.length === 0 && (!isSearchActive ? favTools.length === 0 : true) ? (
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -230,7 +234,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
                   >
                     No tools found
                   </motion.p>
-                ) : isSearching ? (
+                ) : isSearchActive ? (
                   <motion.div variants={listVariants} initial="hidden" animate="visible">
                     {nonFavFiltered.map((tool) => (
                       <motion.div key={tool.id} variants={itemVariants}>

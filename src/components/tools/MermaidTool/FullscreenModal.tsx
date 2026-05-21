@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,22 +19,40 @@ interface FullscreenModalProps {
 }
 
 export function FullscreenModal({ svg, isDark, onDownload, onClose }: FullscreenModalProps) {
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = () => {
+    setClosing(true);
+  };
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [onClose]);
+  }, []);
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: isDark ? "#0a0a0a" : "#f8f8f8" }}
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md"
+      style={{
+        background: "rgba(0,0,0,0.4)",
+        animation: closing ? "fadeOut 0.2s ease-in forwards" : "fadeIn 0.2s ease-out",
+      }}
+      onAnimationEnd={() => { if (closing) onClose(); }}
     >
+      <div
+        className="flex flex-col rounded-xl overflow-hidden border border-border shadow-2xl"
+        style={{
+          width: "95vw",
+          height: "95vh",
+          background: isDark ? "#0a0a0a" : "#f8f8f8",
+        }}
+      >
       <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0"
         style={{ background: isDark ? "#111" : "#fff" }}
       >
         <span className="text-sm font-medium text-muted-foreground">Diagram Preview</span>
-        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Close fullscreen" onClick={onClose}>
+        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Close fullscreen" onClick={handleClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -54,6 +72,7 @@ export function FullscreenModal({ svg, isDark, onDownload, onClose }: Fullscreen
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+      </div>
       </div>
     </div>,
     document.body,

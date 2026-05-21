@@ -9,7 +9,7 @@ const EXAMPLE_TOKEN =
 
 interface JwtTokenInputProps {
   input: string;
-  error: string;
+  error: string | null;
   parts: JwtParts | null;
   sigVerified: boolean | null;
   isDragging: boolean;

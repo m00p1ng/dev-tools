@@ -153,7 +153,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className={isFullWidth ? "h-full w-full" : "h-full w-full max-w-4xl mx-auto"}
+              className={isFullWidth ? "h-full w-full" : "h-full w-full max-w-5xl mx-auto"}
             >
               <ToolContent toolId={activeTool} />
             </motion.div>
