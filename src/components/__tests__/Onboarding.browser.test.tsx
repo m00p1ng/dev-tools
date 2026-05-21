@@ -26,10 +26,9 @@ function rect(overrides: Partial<DOMRect> = {}): DOMRect {
 test("renders title and all category names", async () => {
   const screen = await render(<Onboarding onComplete={vi.fn()} />);
   await expect.element(screen.getByText("Dev Tools")).toBeVisible();
-  // Use exact: true to avoid substring matching ("Time" inside "Timestamps")
-  await expect.element(screen.getByText("Time", { exact: true })).toBeVisible();
-  await expect.element(screen.getByText("Security", { exact: true })).toBeVisible();
-  await expect.element(screen.getByText("Generators", { exact: true })).toBeVisible();
+  for (const group of new Set(TOOLS.map((tool) => tool.group))) {
+    await expect.element(screen.getByText(group, { exact: true })).toBeVisible();
+  }
 });
 
 test("Get started calls onComplete with no toolId after animation", async () => {
@@ -64,7 +63,7 @@ test("clicking a category card calls onComplete with that group's first tool id"
 test("shows tool count per category", async () => {
   const screen = await render(<Onboarding onComplete={vi.fn()} />);
   const dataTools = TOOLS.filter((t) => t.group === "Data").length;
-  await expect.element(screen.getByText(`${dataTools} tools`, { exact: true })).toBeVisible();
+  await expect.element(screen.getByRole("button", { name: new RegExp(`^Data.*${dataTools} tools`) })).toBeVisible();
 });
 
 test("desktop pointer interactions update hover affordances", async () => {

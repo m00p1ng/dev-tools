@@ -128,6 +128,13 @@ test("full width toggle changes the content wrapper", async () => {
   await expect.element(screen.getByTitle("Constrain width")).toBeVisible();
 });
 
+test("full width toggle is hidden on mobile screens", async () => {
+  localStorage.setItem("onboarding-v1", "true");
+  Object.defineProperty(window, "innerWidth", { configurable: true, writable: true, value: 500 });
+  const screen = await render(<App />);
+  expect(screen.getByTitle("Full width").elements()).toHaveLength(0);
+});
+
 test("sidebar auto hides on mobile resize and shows on desktop resize", async () => {
   localStorage.setItem("onboarding-v1", "true");
   const listeners = new Set<(event: MediaQueryListEvent) => void>();

@@ -134,9 +134,11 @@ export default function App() {
           </AnimatePresence>
 
           <div className="flex flex-1 justify-end items-center gap-1">
-            <Button variant="ghost" size="icon-xs" onClick={() => setFullWidth(!fullWidth)} title={fullWidth ? "Constrain width" : "Full width"}>
-              {fullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-            </Button>
+            {!isMobile && (
+              <Button variant="ghost" size="icon-xs" onClick={() => setFullWidth(!fullWidth)} title={fullWidth ? "Constrain width" : "Full width"}>
+                {fullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              </Button>
+            )}
             <ThemeToggle />
           </div>
         </header>

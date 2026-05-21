@@ -9,9 +9,12 @@ A local-first collection of developer utilities built with React, Vite, and Type
 - Time: Unix timestamp converter and cron parser.
 - Data: JSON formatting and validation, YAML/JSON conversion, JSON/CSV conversion.
 - Encoding: Base64, URL component encoding, and backslash escape tools.
-- Web: URL parser and Mermaid diagram renderer.
-- Security: JWT debugger and hash generator.
-- Generators: UUID, lorem ipsum, random string, and QR code tools.
+- Web: URL parser, Mermaid diagram renderer, color picker, and JWT debugger.
+- Generators: Hash, UUID, lorem ipsum, random string, and QR code tools.
+
+The sidebar supports favorites, hiding tools, and search by tool name or
+description. Search results show each matching tool with its description and
+return to the grouped sidebar after selection.
 
 ## Getting Started
 
@@ -45,7 +48,6 @@ bun run preview
 bun run typecheck
 bun run lint
 bun run test
-bun run test:ui
 bun run test:coverage
 ```
 

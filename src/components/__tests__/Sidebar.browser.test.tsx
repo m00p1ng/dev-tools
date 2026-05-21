@@ -29,12 +29,35 @@ test("calls onSelect with the correct tool id when a tool is clicked", async () 
   await vi.waitFor(() => expect(onSelect).toHaveBeenCalledWith("cron"), { timeout: 2000 });
 });
 
+test("selecting a search result returns to the grouped sidebar", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  const search = screen.getByPlaceholder("Search tools...");
+  await search.fill("cron");
+  await expect.element(screen.getByText("Parse and explain cron expressions")).toBeVisible();
+
+  await screen.getByText("Cron Parser").click();
+
+  await vi.waitFor(() => {
+    expect((search.element() as HTMLInputElement).value).toBe("");
+  }, { timeout: 2000 });
+  await expect.element(screen.getByText("Time", { exact: true })).toBeVisible();
+  expect(screen.getByText("Parse and explain cron expressions").elements()).toHaveLength(0);
+});
+
 test("search filters the tool list", async () => {
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
   await screen.getByPlaceholder("Search tools...").fill("cron");
   await expect.element(screen.getByText("Cron Parser")).toBeVisible();
+  await expect.element(screen.getByText("Parse and explain cron expressions")).toBeVisible();
   // Element may be removed from DOM entirely when filtered; use elements() to avoid "not found" error
   expect(screen.getByText("Hash Generator").elements()).toHaveLength(0);
+});
+
+test("search matches tool descriptions", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByPlaceholder("Search tools...").fill("human-readable");
+  await expect.element(screen.getByText("Unix Time Converter")).toBeVisible();
+  await expect.element(screen.getByText("Convert between unix timestamps and human-readable dates")).toBeVisible();
 });
 
 test("shows No tools found when search has no match", async () => {
@@ -111,15 +134,11 @@ test("hidden tool is removed from the tool list", async () => {
   expect(screen.getByText("Cron Parser").elements()).toHaveLength(0);
 });
 
-test("star click in search view (isSearching=true) favorites the tool", async () => {
+test("search view hides favorite controls on tool rows", async () => {
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
   await screen.getByPlaceholder("Search tools...").fill("cron");
   await expect.element(screen.getByText("Cron Parser")).toBeVisible();
-  await screen.getByRole("button", { name: "Add to favorites" }).first().click();
-  await vi.waitFor(() => {
-    const favs = localStorage.getItem("favorites");
-    expect(favs).not.toBeNull();
-  }, { timeout: 2000 });
+  expect(screen.getByRole("button", { name: "Add to favorites" }).elements()).toHaveLength(0);
 });
 
 test("Manage Tools button closes the panel when clicked again", async () => {

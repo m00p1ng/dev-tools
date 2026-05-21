@@ -40,7 +40,7 @@ export function ToolSidebarLayout({ children }: { children: React.ReactNode }) {
 }
 
 export function ToolSidebar({ children }: { children: React.ReactNode }) {
-  return <div className="w-full shrink-0 flex flex-col gap-4 md:w-64">{children}</div>;
+  return <div className="w-full shrink-0 flex flex-col gap-4 md:w-72">{children}</div>;
 }
 
 interface ToolToolbarProps {

@@ -18,12 +18,16 @@ function ToolButton({
   tool,
   active,
   isFav,
+  showDescription = false,
+  showFavorite = true,
   onSelect,
   onToggleFav,
 }: {
   tool: (typeof TOOLS)[number];
   active: boolean;
   isFav: boolean;
+  showDescription?: boolean;
+  showFavorite?: boolean;
   onSelect: () => void;
   onToggleFav: () => void;
 }) {
@@ -38,7 +42,8 @@ function ToolButton({
         onClick={onSelect}
         layout
         className={cn(
-          "flex flex-1 items-center gap-2.5 px-3 py-2 text-left text-sm touch-manipulation min-w-0",
+          "flex flex-1 gap-2.5 px-3 py-2 text-left text-sm touch-manipulation min-w-0",
+          showDescription ? "items-start" : "items-center",
           active
             ? "text-sidebar-accent-foreground font-medium"
             : "text-sidebar-foreground"
@@ -47,26 +52,35 @@ function ToolButton({
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
-        <tool.icon className={cn("size-3.5 shrink-0", tool.color)} />
-        <span className="flex-1 truncate">{tool.label}</span>
+        <tool.icon className={cn("size-3.5 shrink-0", showDescription && "mt-0.5", tool.color)} />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate">{tool.label}</span>
+          {showDescription && (
+            <span className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
+              {tool.description}
+            </span>
+          )}
+        </span>
       </motion.button>
 
-      <motion.button
-        onClick={onToggleFav}
-        whileTap={{ scale: 1.4, rotate: 20 }}
-        transition={{ type: "spring", stiffness: 600, damping: 12 }}
-        className="flex shrink-0 items-center justify-center px-3 py-2 touch-manipulation"
-        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
-      >
-        <Star
-          className={cn(
-            "size-3.5 shrink-0 transition-all duration-200",
-            isFav
-              ? "fill-yellow-400 text-yellow-400"
-              : "text-muted-foreground opacity-40 sm:opacity-0 sm:group-hover:opacity-60"
-          )}
-        />
-      </motion.button>
+      {showFavorite && (
+        <motion.button
+          onClick={onToggleFav}
+          whileTap={{ scale: 1.4, rotate: 20 }}
+          transition={{ type: "spring", stiffness: 600, damping: 12 }}
+          className="flex shrink-0 items-center justify-center px-3 py-2 touch-manipulation"
+          aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Star
+            className={cn(
+              "size-3.5 shrink-0 transition-all duration-200",
+              isFav
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground opacity-40 sm:opacity-0 sm:group-hover:opacity-60"
+            )}
+          />
+        </motion.button>
+      )}
     </div>
   );
 }
@@ -86,12 +100,21 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
   const [showManage, setShowManage] = useState(false);
   const { favorites, hiddenTools, toggleFav, toggleHidden, resetHidden } = useSidebarSettings();
 
+  const selectTool = (id: string) => {
+    onSelect(id);
+    setQuery("");
+  };
+
   const favSet = new Set(favorites);
   const hiddenSet = new Set(hiddenTools);
   const visibleTools = TOOLS.filter((t) => !hiddenSet.has(t.id));
-  const filtered = visibleTools.filter((t) =>
-    t.label.toLowerCase().includes(query.toLowerCase())
-  );
+  const normalizedQuery = query.toLowerCase();
+  const filtered = visibleTools.filter((t) => {
+    const label = t.label.toLowerCase();
+    const description = t.description.toLowerCase();
+
+    return label.includes(normalizedQuery) || description.includes(normalizedQuery);
+  });
 
   const toolMap = new Map(TOOLS.map((t) => [t.id, t]));
   const favTools = favorites
@@ -188,7 +211,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
                               tool={tool}
                               active={activeTool === tool.id}
                               isFav
-                              onSelect={() => onSelect(tool.id)}
+                              onSelect={() => selectTool(tool.id)}
                               onToggleFav={() => toggleFav(tool.id)}
                             />
                           </motion.div>
@@ -215,7 +238,9 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
                           tool={tool}
                           active={activeTool === tool.id}
                           isFav={favSet.has(tool.id)}
-                          onSelect={() => onSelect(tool.id)}
+                          showDescription
+                          showFavorite={false}
+                          onSelect={() => selectTool(tool.id)}
                           onToggleFav={() => toggleFav(tool.id)}
                         />
                       </motion.div>
@@ -235,7 +260,7 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
                                 tool={tool}
                                 active={activeTool === tool.id}
                                 isFav={favSet.has(tool.id)}
-                                onSelect={() => onSelect(tool.id)}
+                                onSelect={() => selectTool(tool.id)}
                                 onToggleFav={() => toggleFav(tool.id)}
                               />
                             </motion.div>
