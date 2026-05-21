@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getClaimDisplay, syntaxHighlight } from "../jwt-format";
+import { getClaimDisplay, syntaxHighlight } from "../format";
 
 describe("jwt-format", () => {
   it("escapes HTML before applying JSON syntax highlighting", () => {

@@ -19,6 +19,21 @@ test("starts in idle state", async () => {
   await expect.element(screen.getByText("idle")).toBeVisible();
 });
 
+function FixtureNoTimeout() {
+  const { copied, copy } = useCopy(); // no timeout → uses default 2000
+  return (
+    <div>
+      <span>{copied ? "copied" : "idle"}</span>
+      <button onClick={() => copy("hello")}>copy</button>
+    </div>
+  );
+}
+
+test("uses default timeout when none provided", async () => {
+  const screen = await render(<FixtureNoTimeout />);
+  await expect.element(screen.getByText("idle")).toBeVisible();
+});
+
 test("shows copied state after copy is called", async () => {
   vi.useFakeTimers();
   const screen = await render(<Fixture />);

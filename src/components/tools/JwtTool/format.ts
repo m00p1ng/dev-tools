@@ -24,4 +24,3 @@ export function getClaimDisplay(key: string, value: unknown): string {
 
   return JSON.stringify(value);
 }
-

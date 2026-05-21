@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ComponentType } from "react";
-import { TOOLS } from "@/tools";
+import { TOOLS, type ToolId } from "@/tools";
 import { PlaceholderTool } from "./tools/PlaceholderTool";
 
 type ToolModule<TName extends string> = Record<TName, ComponentType>;
@@ -11,7 +11,7 @@ function lazyTool<TName extends string>(
   return lazy(async () => ({ default: (await importer())[exportName] }));
 }
 
-const TOOL_COMPONENTS: Record<string, ComponentType> = {
+const TOOL_COMPONENTS: Partial<Record<ToolId, ComponentType>> = {
   "json-format": lazyTool(() => import("./tools/JsonFormatTool"), "JsonFormatTool"),
   "base64": lazyTool(() => import("./tools/Base64Tool"), "Base64Tool"),
   "url-encode": lazyTool(() => import("./tools/UrlEncodeTool"), "UrlEncodeTool"),

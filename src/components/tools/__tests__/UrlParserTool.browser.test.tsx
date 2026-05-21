@@ -65,3 +65,58 @@ test("URL with username and password shows auth fields", async () => {
   await expect.element(screen.getByText("Username")).toBeVisible();
   await expect.element(screen.getByRole("cell", { name: "user", exact: true })).toBeVisible();
 });
+
+test("URL with default HTTPS port still shows colon in highlight", async () => {
+  const screen = await render(<UrlParserTool />);
+  // Port 443 is the default for HTTPS so u.port="" but raw has ":"
+  await screen.getByRole("textbox").fill("https://example.com:443/path");
+  await expect.element(screen.getByText("Protocol")).toBeVisible();
+});
+
+test("URL with only a hash fragment shows no hash value in Hash cell", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://example.com#");
+  await expect.element(screen.getByText("Hash")).toBeVisible();
+});
+
+test("URL with username but no password skips password row", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://user@example.com/path");
+  await expect.element(screen.getByText("Username")).toBeVisible();
+  expect(screen.getByText("Password").elements()).toHaveLength(0);
+});
+
+test("URL without trailing slash on root covers no-slash highlight path", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://example.com");
+  await expect.element(screen.getByText("Protocol")).toBeVisible();
+});
+
+test("URL with query key having no value covers rest.length === 0 branch", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://example.com/path?flag");
+  await expect.element(screen.getByText("Query Parameters")).toBeVisible();
+  await expect.element(screen.getByRole("cell", { name: "flag", exact: true })).toBeVisible();
+});
+
+test("URL with bare query marker keeps empty query output", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://example.com/path?");
+  await expect.element(screen.getByText("Query")).toBeVisible();
+  await expect.element(screen.getByRole("cell", { name: "(none)", exact: true }).first()).toBeVisible();
+});
+
+test("URL with empty query pair keeps separator rendering stable", async () => {
+  const screen = await render(<UrlParserTool />);
+  await screen.getByRole("textbox").fill("https://example.com/path?foo=bar&&baz=qux");
+  await expect.element(screen.getByText("Query Parameters")).toBeVisible();
+  await expect.element(screen.getByRole("cell", { name: "foo", exact: true })).toBeVisible();
+  await expect.element(screen.getByRole("cell", { name: "baz", exact: true })).toBeVisible();
+});
+
+test("dragging over URL input applies drag affordance", async () => {
+  const screen = await render(<UrlParserTool />);
+  const textarea = screen.getByRole("textbox").element();
+  textarea.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true }));
+  await expect.poll(() => textarea.className).toContain("ring-2");
+});

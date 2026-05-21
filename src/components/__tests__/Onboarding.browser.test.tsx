@@ -41,6 +41,18 @@ test("Get started calls onComplete with no toolId after animation", async () => 
   await vi.waitFor(() => expect(onComplete).toHaveBeenCalledWith(undefined), { timeout: 1500 });
 });
 
+test("launch ignores repeated clicks while exit animation is running", async () => {
+  const onComplete = vi.fn();
+  const screen = await render(<Onboarding onComplete={onComplete} />);
+  const cta = screen.getByRole("button", { name: "Get started" }).element() as HTMLButtonElement;
+  cta.click();
+  await vi.waitFor(() => {
+    expect((cta.closest(".fixed") as HTMLElement).style.pointerEvents).toBe("none");
+  }, { timeout: 1000 });
+  cta.click();
+  await vi.waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1), { timeout: 1500 });
+});
+
 test("clicking a category card calls onComplete with that group's first tool id", async () => {
   const onComplete = vi.fn();
   const screen = await render(<Onboarding onComplete={onComplete} />);
@@ -105,6 +117,7 @@ test("touch devices skip desktop pointer effects", async () => {
   const timeCard = screen.getByRole("button", { name: /^Time/ }).element() as HTMLButtonElement;
   vi.spyOn(timeCard, "getBoundingClientRect").mockReturnValue(rect());
   timeCard.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 50, clientY: 20 }));
+  timeCard.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
 
   const grid = timeCard.closest(".relative.w-full") as HTMLDivElement;
   vi.spyOn(grid, "getBoundingClientRect").mockReturnValue(rect());

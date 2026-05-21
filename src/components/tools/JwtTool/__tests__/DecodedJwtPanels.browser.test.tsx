@@ -23,6 +23,19 @@ test("switches to claim labels and formatted claim values", async () => {
   await expect.element(screen.getByText("true")).toBeVisible();
 });
 
+test("renders editable panel without editValue or onEditChange falls back to json and no-op", async () => {
+  const screen = await render(
+    <DecodedPanel
+      title="Payload"
+      data={{ sub: "123" }}
+      editable
+    />,
+  );
+  await expect.element(screen.getByText("Payload")).toBeVisible();
+  // editValue ?? json fallback and onEditChange ?? (() => {}) fallback are exercised
+  await screen.getByLabelText("Edit JWT payload JSON").fill("{}");
+});
+
 test("renders editable payload JSON, forwards edits, and shows edit errors", async () => {
   const onEditChange = vi.fn();
   const screen = await render(

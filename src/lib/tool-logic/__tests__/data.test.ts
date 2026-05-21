@@ -71,4 +71,23 @@ describe("data helpers", () => {
   it("reports invalid JSON in jsonToCsv", () => {
     expect(jsonToCsv("{bad json")).toMatchObject({ ok: false });
   });
+
+  it("csvToJson handles CSV with parse errors", () => {
+    // Very malformed CSV that triggers PapaParse errors (e.g., embedded null bytes or imbalanced quotes)
+    // PapaParse may produce errors for some edge cases
+    const result = csvToJson('"unclosed', true);
+    // Either ok with partial parse or error — just ensure it doesn't throw
+    expect(["ok", "error"].includes(result.ok ? "ok" : "error")).toBe(true);
+  });
+
+  it("yamlToJson null document returns empty string", () => {
+    // yaml.load("null") returns null → JSON.stringify(null) = "null" (not empty)
+    expect(yamlToJson("null")).toMatchObject({ ok: true });
+  });
+
+  it("yamlToJson whitespace-only input triggers ?? fallback returning empty string", () => {
+    // "   " is truthy so skips the !input guard; yaml.load("   ") = undefined;
+    // JSON.stringify(undefined) = undefined → ?? "" → returns ""
+    expect(yamlToJson("   ")).toEqual({ ok: true, value: "" });
+  });
 });

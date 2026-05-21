@@ -45,6 +45,7 @@ const additionalToolIds = [
   "mermaid",
   "random-string",
   "qrcode",
+  "color-picker",
 ];
 
 for (const toolId of additionalToolIds) {

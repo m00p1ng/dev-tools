@@ -129,3 +129,20 @@ test("renders decode errors instead of valid statuses", async () => {
 
   await expect.element(screen.getByText("Invalid JWT")).toBeVisible();
 });
+
+test("isDragging=true applies ring class to token wrapper div", async () => {
+  await render(
+    <JwtTokenInput
+      input=""
+      error={null}
+      parts={null}
+      sigVerified={null}
+      isDragging={true}
+      dropProps={{}}
+      onChange={vi.fn()}
+      onClear={vi.fn()}
+    />,
+  );
+  const ringDiv = document.querySelector(".ring-2") as HTMLElement | null;
+  expect(ringDiv).not.toBeNull();
+});

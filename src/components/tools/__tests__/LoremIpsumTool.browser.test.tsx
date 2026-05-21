@@ -62,6 +62,15 @@ test("Enter key in count input triggers blur and commits value", async () => {
   expect(el.value).toBe("2");
 });
 
+test("non-Enter key in count input does not blur", async () => {
+  const screen = await render(<LoremIpsumTool />);
+  const countInput = screen.getByRole("spinbutton");
+  const el = countInput.element() as HTMLInputElement;
+  el.focus();
+  el.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+  expect(document.activeElement).toBe(el);
+});
+
 test("slider change updates count input", async () => {
   const screen = await render(<LoremIpsumTool />);
   const slider = screen.getByRole("slider").element() as HTMLElement;

@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { TextTransformTool } from "../TextTransformTool";
 
@@ -136,4 +136,23 @@ test("transform error shows error badge", async () => {
   );
   await screen.getByPlaceholder("Enter text").fill("bad");
   await expect.element(screen.getByText("Transform failed")).toBeVisible();
+});
+
+test("dragover on input textarea sets isDragging ring class", async () => {
+  const screen = await render(
+    <TextTransformTool
+      storageKey="test"
+      modes={[{ value: "upper", label: "Upper" }]}
+      initialMode="upper"
+      inputPlaceholder="Enter text"
+      outputPlaceholder="Output"
+      example="hello"
+      transform={(input) => ({ ok: true, value: input.toUpperCase() })}
+    />,
+  );
+  const textarea = screen.getByPlaceholder("Enter text").element();
+  textarea.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true }));
+  await vi.waitFor(() => {
+    expect(textarea.className).toMatch(/ring-2/);
+  }, { timeout: 1000 });
 });

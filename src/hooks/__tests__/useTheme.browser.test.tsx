@@ -110,3 +110,25 @@ test("setTheme without origin uses window center", async () => {
   await screen.getByRole("button", { name: "switch-dark-no-origin" }).click();
   await expect.element(screen.getByText("active:dark")).toBeVisible();
 });
+
+test("defaults to dark when no stored theme and matchMedia prefers dark", async () => {
+  // Mock matchMedia to return dark
+  const original = window.matchMedia;
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: (query: string) => ({
+      matches: query.includes("dark"),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => true,
+    }),
+  });
+  const screen = await render(<Fixture />);
+  await expect.element(screen.getByText("active:dark")).toBeVisible();
+  // Restore original
+  Object.defineProperty(window, "matchMedia", { writable: true, value: original });
+});

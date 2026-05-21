@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CopyButton } from "@/components/ui/copy-button";
-import { getClaimDisplay, syntaxHighlight } from "./jwt-format";
+import { getClaimDisplay, syntaxHighlight } from "./format";
 
 const CLAIM_LABELS: Record<string, string> = {
   iss: "Issuer",
@@ -116,4 +116,3 @@ export function DecodedPanel({ title, data, editable, editValue, onEditChange, e
     </div>
   );
 }
-

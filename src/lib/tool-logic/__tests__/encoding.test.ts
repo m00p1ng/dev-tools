@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   decodeBase64,
   encodeBase64,
@@ -53,5 +53,20 @@ describe("encoding helpers", () => {
   it("encodeBase64 and decodeBase64 are inverses for ASCII", () => {
     expect(encodeBase64("hello")).toBe("aGVsbG8=");
     expect(decodeBase64("aGVsbG8=")).toBe("hello");
+  });
+
+  it("returns Encoding failed for URL encode with lone surrogate", () => {
+    // lone high surrogate causes encodeURIComponent to throw
+    const loneHighSurrogate = String.fromCharCode(0xd800);
+    const result = transformUrlComponent(loneHighSurrogate, "encode");
+    expect(result).toEqual({ ok: false, error: "Encoding failed" });
+  });
+
+  it("returns Encoding failed when Base64 encoding throws", () => {
+    const btoaSpy = vi.spyOn(globalThis, "btoa").mockImplementation(() => {
+      throw new Error("boom");
+    });
+    expect(transformBase64("hello", "encode")).toEqual({ ok: false, error: "Encoding failed" });
+    btoaSpy.mockRestore();
   });
 });

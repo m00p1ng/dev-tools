@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "vitest";
+import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { HashTool } from "../HashTool";
 
@@ -51,4 +51,13 @@ test("hex button is active by default (selected styling)", async () => {
   const screen = await render(<HashTool />);
   await expect.element(screen.getByRole("button", { name: "hex" })).toBeVisible();
   await expect.element(screen.getByRole("button", { name: "base64" })).toBeVisible();
+});
+
+test("dragover on textarea sets isDragging ring class", async () => {
+  const screen = await render(<HashTool />);
+  const textarea = screen.getByRole("textbox").element();
+  textarea.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true }));
+  await vi.waitFor(() => {
+    expect(textarea.className).toMatch(/ring-2/);
+  }, { timeout: 1000 });
 });

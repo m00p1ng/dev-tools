@@ -2,94 +2,16 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { TOOLS } from "@/tools";
-import {
-  AlignLeft,
-  Binary,
-  Braces,
-  Clock,
-  Code,
-  FileCode,
-  FileJson,
-  Fingerprint,
-  GitFork,
-  Globe,
-  Hash,
-  KeyRound,
-  Link,
-  QrCode,
-  RotateCcw,
-  Search,
-  Settings,
-  Shuffle,
-  Star,
-  Table,
-  TableProperties,
-  Timer,
-  Pipette,
-  type LucideProps,
-} from "lucide-react";
+import { Search, Settings, Star } from "lucide-react";
+import { useSidebarSettings } from "@/hooks/useSidebarSettings";
+import { ManagePanel } from "@/components/ManagePanel";
 
 interface SidebarProps {
   activeTool: string;
   onSelect: (id: string) => void;
   overlay?: boolean;
-}
-
-const TOOL_ICONS: Record<string, React.FC<LucideProps>> = {
-  AlignLeft,
-  Binary,
-  Braces,
-  Clock,
-  Code,
-  FileCode,
-  FileJson,
-  Fingerprint,
-  GitFork,
-  Globe,
-  Hash,
-  KeyRound,
-  Link,
-  QrCode,
-  Shuffle,
-  Table,
-  TableProperties,
-  Timer,
-  Pipette,
-};
-
-function ToolIcon({ name, ...props }: { name: string } & LucideProps) {
-  const Icon = TOOL_ICONS[name];
-  if (!Icon) return null;
-  return <Icon {...props} />;
-}
-
-function loadFavorites(): string[] {
-  try {
-    const raw = localStorage.getItem("favorites");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveFavorites(favs: string[]) {
-  localStorage.setItem("favorites", JSON.stringify(favs));
-}
-
-function loadHiddenTools(): string[] {
-  try {
-    const raw = localStorage.getItem("hidden-tools");
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHiddenTools(ids: string[]) {
-  localStorage.setItem("hidden-tools", JSON.stringify(ids));
 }
 
 function ToolButton({
@@ -125,7 +47,7 @@ function ToolButton({
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
-        <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
+        <tool.icon className={cn("size-3.5 shrink-0", tool.color)} />
         <span className="flex-1 truncate">{tool.label}</span>
       </motion.button>
 
@@ -161,35 +83,12 @@ const itemVariants = {
 
 export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps) {
   const [query, setQuery] = useState("");
-  const [favorites, setFavorites] = useState<string[]>(loadFavorites);
-  const [hiddenTools, setHiddenTools] = useState<string[]>(loadHiddenTools);
   const [showManage, setShowManage] = useState(false);
+  const { favorites, hiddenTools, toggleFav, toggleHidden, resetHidden } = useSidebarSettings();
+
   const favSet = new Set(favorites);
   const hiddenSet = new Set(hiddenTools);
-
-  function toggleFav(id: string) {
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id];
-      saveFavorites(next);
-      return next;
-    });
-  }
-
-  function toggleHidden(id: string) {
-    setHiddenTools((prev) => {
-      const next = prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id];
-      saveHiddenTools(next);
-      return next;
-    });
-  }
-
-  function resetHidden() {
-    setHiddenTools([]);
-    saveHiddenTools([]);
-  }
-
   const visibleTools = TOOLS.filter((t) => !hiddenSet.has(t.id));
-
   const filtered = visibleTools.filter((t) =>
     t.label.toLowerCase().includes(query.toLowerCase())
   );
@@ -251,49 +150,12 @@ export function Sidebar({ activeTool, onSelect, overlay = false }: SidebarProps)
             transition={{ duration: 0.15 }}
             className="flex flex-1 min-h-0 flex-col"
           >
-            <div className="flex items-center justify-between px-4 pb-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Visible Tools
-              </span>
-              {hiddenTools.length > 0 && (
-                <button
-                  onClick={resetHidden}
-                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <RotateCcw className="size-2.5" />
-                  Reset
-                </button>
-              )}
-            </div>
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="px-3 pb-4 space-y-4">
-                {allGroups.map(([group, tools]) => (
-                  <div key={group}>
-                    <p className="px-1 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {group}
-                    </p>
-                    <div className="space-y-1">
-                      {tools.map((tool) => (
-                        <div
-                          key={tool.id}
-                          className="flex items-center justify-between rounded-md px-2 py-1.5 hover:bg-sidebar-accent/50"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <ToolIcon name={tool.icon} className={cn("size-3.5 shrink-0", tool.color)} />
-                            <span className="text-xs text-sidebar-foreground truncate">{tool.label}</span>
-                          </div>
-                          <Switch
-                            checked={!hiddenSet.has(tool.id)}
-                            onCheckedChange={() => toggleHidden(tool.id)}
-                            className="shrink-0 ml-2 scale-75"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+            <ManagePanel
+              allGroups={allGroups}
+              hiddenTools={hiddenTools}
+              onToggleHidden={toggleHidden}
+              onReset={resetHidden}
+            />
           </motion.div>
         ) : (
           <motion.div

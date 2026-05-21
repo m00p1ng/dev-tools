@@ -7,6 +7,7 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { parseCronExpression } from "@/lib/tool-logic/web-time";
+import { listVariants, itemVariantsY as itemVariants } from "@/lib/animation-presets";
 
 const PRESETS = [
   { label: "Every minute", value: "* * * * *" },
@@ -15,12 +16,6 @@ const PRESETS = [
   { label: "Every Monday at 9am", value: "0 9 * * 1" },
   { label: "Every 1st of month", value: "0 0 1 * *" },
 ];
-
-const listVariants = { visible: { transition: { staggerChildren: 0.07 } } };
-const itemVariants = {
-  hidden: { opacity: 0, y: 6 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 25 } },
-};
 
 export function CronTool() {
   const [input, setInput] = useLocalStorage("tool:cron", "0 9 * * 1");

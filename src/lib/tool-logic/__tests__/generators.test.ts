@@ -63,4 +63,12 @@ describe("generator helpers", () => {
     expect(randomChar("abc", 1)).toBe("b");
     expect(randomChar("abc", 3)).toBe("a");
   });
+
+  it("falls back to charset when all chars are symbols (nonSymbol is empty)", () => {
+    // charset = symbolCharset means no non-symbol chars → nonSymbol = "" → || charset fallback
+    const bytes = new Uint8Array([5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 1, 0, 0, 0]);
+    const output = generateRandomString(10, RANDOM_CHARSET.symbols, RANDOM_CHARSET.symbols, bytes);
+    expect(output).toHaveLength(10);
+    expect([...output].every((c) => RANDOM_CHARSET.symbols.includes(c))).toBe(true);
+  });
 });

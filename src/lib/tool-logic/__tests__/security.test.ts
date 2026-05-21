@@ -77,10 +77,32 @@ describe("security helpers", () => {
     );
   });
 
+  it("decodes a 2-part token (no signature) — covers ?? '' fallback", () => {
+    const header = base64urlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const payload = base64urlEncode(JSON.stringify({ sub: "test" }));
+    const result = decodeJwtToken(`${header}.${payload}`);
+    // jwtDecode succeeds with 2 parts; [2] is undefined → ?? "" → signature=""
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.signature).toBe("");
+  });
+
+  it("decodes a token with no alg field — covers 'unknown' fallback", () => {
+    const header = base64urlEncode(JSON.stringify({ typ: "JWT" }));
+    const payload = base64urlEncode(JSON.stringify({ sub: "test" }));
+    const result = decodeJwtToken(`${header}.${payload}.fakesig`);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.algorithm).toBe("unknown");
+  });
+
   it("base64urlToBytes round-trips with base64urlEncode", () => {
     const original = "hello world";
     const encoded = base64urlEncode(original);
     const bytes = base64urlToBytes(encoded);
     expect(new TextDecoder().decode(bytes)).toBe(original);
+  });
+
+  it("verifyHS256 returns false when sig contains invalid base64 (triggers catch)", async () => {
+    // "!!!" is not valid base64 → atob throws → catch → return false
+    await expect(verifyHS256("aGVsbG8=.aGVsbG8=.!!!invalid!!!", "secret", false)).resolves.toBe(false);
   });
 });

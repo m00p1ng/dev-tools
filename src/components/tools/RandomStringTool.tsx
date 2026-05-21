@@ -7,6 +7,8 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { ToolSidebarLayout, ToolSidebar } from "@/components/ui/tool-layout";
 import { motion, AnimatePresence } from "framer-motion";
 import { buildRandomCharset, clampNumber, generateRandomString, RANDOM_CHARSET } from "@/lib/tool-logic/generators";
+import { listVariants, itemVariants } from "@/lib/animation-presets";
+import { CopyableMonoItem } from "@/components/ui/copyable-mono-item";
 
 function SliderWithInput({
   label,
@@ -55,12 +57,6 @@ function SliderWithInput({
     </div>
   );
 }
-
-const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
-const itemVariants = {
-  hidden: { opacity: 0, x: -8 },
-  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 400, damping: 30 } },
-};
 
 export function RandomStringTool() {
   const [length, setLength] = useState(32);
@@ -116,10 +112,7 @@ export function RandomStringTool() {
         >
           {results.map((s, i) => (
             <motion.div key={i} variants={itemVariants}>
-              <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
-                <span className="font-mono text-sm flex-1 break-all select-all">{s}</span>
-                <CopyButton text={s} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              <CopyableMonoItem text={s} />
             </motion.div>
           ))}
         </motion.div>

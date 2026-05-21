@@ -111,23 +111,15 @@ test("hidden tool is removed from the tool list", async () => {
   expect(screen.getByText("Cron Parser").elements()).toHaveLength(0);
 });
 
-test("star click in tool list favorites the tool", async () => {
+test("star click in search view (isSearching=true) favorites the tool", async () => {
   const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
-  // Each ToolButton contains a Star icon div as the last child of the motion.button
-  // Click the star (motion.div wrapping Star) - it's inside the button
-  // Use keyboard search to find "cron" then interact with star
   await screen.getByPlaceholder("Search tools...").fill("cron");
   await expect.element(screen.getByText("Cron Parser")).toBeVisible();
-  // The star is a motion.div onClick handler inside the button; use DOM query
-  const starDivs = document.querySelectorAll("nav button > div");
-  if (starDivs.length > 0) {
-    (starDivs[0] as HTMLElement).click();
-    // After star click, favorites should update localStorage
-    await vi.waitFor(() => {
-      const favs = localStorage.getItem("favorites");
-      expect(favs).not.toBeNull();
-    }, { timeout: 2000 });
-  }
+  await screen.getByRole("button", { name: "Add to favorites" }).first().click();
+  await vi.waitFor(() => {
+    const favs = localStorage.getItem("favorites");
+    expect(favs).not.toBeNull();
+  }, { timeout: 2000 });
 });
 
 test("Manage Tools button closes the panel when clicked again", async () => {
@@ -136,4 +128,22 @@ test("Manage Tools button closes the panel when clicked again", async () => {
   await expect.element(screen.getByText("Visible Tools")).toBeVisible();
   await screen.getByRole("button", { name: /Manage Tools/ }).click();
   await expect.element(screen.getByText("JSON Format / Validate")).toBeVisible();
+});
+
+test("clicking a tool in grouped view (no search) calls onSelect", async () => {
+  const onSelect = vi.fn();
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={onSelect} />);
+  // Don't search — stay in grouped view. Click JSON Format / Validate directly.
+  await expect.element(screen.getByText("JSON Format / Validate")).toBeVisible();
+  await screen.getByText("JSON Format / Validate").click();
+  await vi.waitFor(() => expect(onSelect).toHaveBeenCalledWith("json-format"), { timeout: 2000 });
+});
+
+test("star click in grouped view (no search) adds a favorite", async () => {
+  const screen = await render(<Sidebar activeTool="json-format" onSelect={vi.fn()} />);
+  await screen.getByRole("button", { name: "Add to favorites" }).first().click();
+  await vi.waitFor(() => {
+    const favs = localStorage.getItem("favorites");
+    expect(favs).not.toBeNull();
+  }, { timeout: 2000 });
 });

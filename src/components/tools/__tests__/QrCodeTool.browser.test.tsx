@@ -151,6 +151,24 @@ test("file input with a real PNG image on read tab shows error", async () => {
   }, { timeout: 5000 });
 });
 
+test("non-image file drop on read tab is ignored", async () => {
+  const screen = await render(<QrCodeTool />);
+  await screen.getByRole("button", { name: "read" }).click();
+  const dropZone = document.querySelector("div.border-dashed") as HTMLElement;
+  const dt = new DataTransfer();
+  dt.items.add(new File(["plain text"], "note.txt", { type: "text/plain" }));
+  dropZone.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+  expect(screen.getByText("No QR code found in image").elements()).toHaveLength(0);
+});
+
+test("empty file input change is ignored", async () => {
+  const screen = await render(<QrCodeTool />);
+  await screen.getByRole("button", { name: "read" }).click();
+  const fileInput = document.querySelector("input[type='file']") as HTMLInputElement;
+  fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+  expect(screen.getByText("No QR code found in image").elements()).toHaveLength(0);
+});
+
 test("reads a generated QR image from the read tab", async () => {
   const screen = await render(<QrCodeTool />);
   await screen.getByRole("textbox").fill("decoded-from-image");
@@ -192,4 +210,23 @@ test("file drop returns early when canvas context is unavailable", async () => {
   await vi.waitFor(() => expect(getContextSpy).toHaveBeenCalled(), { timeout: 5000 });
   expect(screen.getByText("No QR code found in image").elements()).toHaveLength(0);
   getContextSpy.mockRestore();
+});
+
+test("dragover on textarea shows isDragging ring class", async () => {
+  const screen = await render(<QrCodeTool />);
+  const textarea = screen.getByRole("textbox").element();
+  textarea.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true }));
+  await vi.waitFor(() => {
+    expect(textarea.className).toMatch(/ring-2/);
+  }, { timeout: 1000 });
+});
+
+test("QR generation error shows error badge for oversized content", async () => {
+  const screen = await render(<QrCodeTool />);
+  // EC level H supports ~1273 bytes max; 4000 byte string should exceed QR capacity
+  const oversized = "A".repeat(4000);
+  await screen.getByRole("textbox").fill(oversized);
+  await vi.waitFor(async () => {
+    await expect.element(screen.getByText("QR generation failed")).toBeVisible();
+  }, { timeout: 4000 });
 });

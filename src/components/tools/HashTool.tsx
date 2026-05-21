@@ -9,14 +9,7 @@ import { useDropText } from "@/hooks/useDropText";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { generateHashes, HASH_ALGOS, type HashAlgo } from "@/lib/tool-logic/security";
-
-const listVariants = {
-  visible: { transition: { staggerChildren: 0.06 } },
-};
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 25 } },
-};
+import { listVariants, itemVariantsY as itemVariants } from "@/lib/animation-presets";
 
 export function HashTool() {
   const [input, setInput] = useLocalStorage("tool:hash", "");

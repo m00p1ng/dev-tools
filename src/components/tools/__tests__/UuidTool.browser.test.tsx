@@ -125,6 +125,35 @@ test("v3 custom namespace input renders with custom option", async () => {
   await expect.element(screen.getByPlaceholder("Namespace UUID")).toBeVisible();
 });
 
+test("bulk copy button appears when count > 1", async () => {
+  const screen = await render(<UuidTool />);
+  const countInput = screen.getByRole("spinbutton");
+  // Set count to 3 and commit
+  await countInput.fill("3");
+  const el = countInput.element() as HTMLInputElement;
+  el.blur();
+  await vi.waitFor(() => {
+    const buttons = Array.from(document.querySelectorAll("button"));
+    const copyBtn = buttons.find((b) => b.textContent?.includes("Copy") && b.getAttribute("aria-label") !== "Copy");
+    expect(copyBtn).not.toBeNull();
+  }, { timeout: 2000 });
+});
+
+test("v5 invalid custom namespace falls back to DNS namespace", async () => {
+  const screen = await render(<UuidTool />);
+  await screen.getByRole("combobox").selectOptions("v5");
+  const selects = document.querySelectorAll("select");
+  const nsSelect = selects[1] as HTMLSelectElement;
+  nsSelect.value = "custom";
+  nsSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  // Fill an invalid UUID string — isUuid() returns false → falls back to uuidv5.DNS
+  const namespaceInput = screen.getByPlaceholder("Namespace UUID");
+  await namespaceInput.fill("not-a-valid-uuid");
+  await screen.getByRole("button", { name: "Regenerate" }).click();
+  // UUID v5 should still generate (with DNS fallback namespace)
+  await expect.element(screen.getByText(/[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-/i)).toBeVisible();
+});
+
 test("count onBlur clamps value", async () => {
   const screen = await render(<UuidTool />);
   const countInput = screen.getByRole("spinbutton");
@@ -136,4 +165,54 @@ test("count onBlur clamps value", async () => {
   await vi.waitFor(() => {
     expect(Number(el.value)).toBeLessThanOrEqual(100);
   }, { timeout: 1000 });
+});
+
+test("namespace URL option is used for v5 generation", async () => {
+  const screen = await render(<UuidTool />);
+  await screen.getByRole("combobox").selectOptions("v5");
+  const nsSelect = document.querySelectorAll("select")[1] as HTMLSelectElement;
+  nsSelect.value = "URL";
+  nsSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  await screen.getByPlaceholder("Enter name…").fill("https://example.com");
+  await expect.element(screen.getByText(/[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-/i)).toBeVisible();
+});
+
+test("unknown namespace falls back to DNS namespace", async () => {
+  const screen = await render(<UuidTool />);
+  await screen.getByRole("combobox").selectOptions("v5");
+  const nsSelect = document.querySelectorAll("select")[1] as HTMLSelectElement;
+  nsSelect.value = "UNKNOWN";
+  nsSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  await screen.getByPlaceholder("Enter name…").fill("example");
+  await expect.element(screen.getByText(/[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-/i)).toBeVisible();
+});
+
+test("count input Enter blurs and clamps invalid values to minimum", async () => {
+  const screen = await render(<UuidTool />);
+  const countInput = screen.getByRole("spinbutton");
+  const el = countInput.element() as HTMLInputElement;
+  el.focus();
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, "abc");
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  await vi.waitFor(() => {
+    expect(el.value).toBe("1");
+  }, { timeout: 1000 });
+});
+
+test("count input ignores non-Enter keydown", async () => {
+  const screen = await render(<UuidTool />);
+  const countInput = screen.getByRole("spinbutton");
+  const el = countInput.element() as HTMLInputElement;
+  el.focus();
+  el.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+  expect(document.activeElement).toBe(el);
+});
+
+test("count slider updates count and shows bulk copy", async () => {
+  const screen = await render(<UuidTool />);
+  const slider = screen.getByRole("slider");
+  await slider.click();
+  slider.element().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+  await expect.element(screen.getByText("Copy")).toBeVisible();
 });

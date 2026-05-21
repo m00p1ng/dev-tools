@@ -74,4 +74,23 @@ describe("web and time helpers", () => {
       },
     });
   });
+
+  it("parseUnixInput returns null for overflow number (invalid date)", () => {
+    // Number("1".repeat(40)) = Infinity → dayjs(Infinity).isValid() = false
+    expect(parseUnixInput("1".repeat(40))).toBeNull();
+  });
+
+  it("formatWithGmt formats negative UTC offset with minus sign", async () => {
+    const dayjs = (await import("dayjs")).default;
+    const date = dayjs("2023-11-14T22:13:20.000Z").utcOffset(-300);
+    const result = formatWithGmt(date);
+    expect(result).toMatch(/GMT -/);
+  });
+
+  it("formatWithGmt formats offset with non-zero minutes (colon form)", async () => {
+    const dayjs = (await import("dayjs")).default;
+    const date = dayjs("2023-11-14T22:13:20.000Z").utcOffset(330); // +5:30
+    const result = formatWithGmt(date);
+    expect(result).toMatch(/GMT \+5:30/);
+  });
 });

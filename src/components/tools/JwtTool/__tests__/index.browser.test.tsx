@@ -1,6 +1,18 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { JwtTool } from "../JwtTool";
+import { JwtTool } from "..";
+import { useJwtDecoder } from "../useJwtDecoder";
+
+function JwtDecoderHarness() {
+  const jwt = useJwtDecoder();
+  return (
+    <>
+      <button type="button" onClick={() => jwt.handlePayloadEdit('{"sub":"1"}')}>Edit without token</button>
+      <button type="button" onClick={() => jwt.decode("")}>Decode empty</button>
+      <output>{jwt.payloadEditStr}</output>
+    </>
+  );
+}
 
 beforeEach(() => {
   localStorage.clear();
@@ -101,4 +113,49 @@ test("editing payload with a secret set re-signs the token", async () => {
     const textarea = screen.getByLabelText("Encoded JWT token").element() as HTMLTextAreaElement;
     expect(textarea.value.split(".")).toHaveLength(3);
   });
+});
+
+test("payload edit with invalid base64 secret falls back to original signature", async () => {
+  const screen = await render(<JwtTool />);
+  await screen.getByRole("button", { name: "Example" }).click();
+  // Enable BASE64URL ENCODED secret mode
+  await screen.getByRole("switch").click();
+  // Enter an invalid base64 string as secret (non-empty → shouldResign=true, but signHS256 throws)
+  await screen.getByLabelText("JWT verification secret").fill("!!!invalid-base64!!!");
+  // Edit payload — handlePayloadEdit calls signEditedPayload which hits the catch block
+  await screen.getByLabelText("Edit JWT payload JSON").fill('{"sub":"1234567890"}');
+  // Should not crash; token still has 3 parts
+  await vi.waitFor(async () => {
+    const textarea = screen.getByLabelText("Encoded JWT token").element() as HTMLTextAreaElement;
+    expect(textarea.value.split(".")).toHaveLength(3);
+  }, { timeout: 2000 });
+});
+
+test("editing payload with exp field shows expiration status", async () => {
+  const screen = await render(<JwtTool />);
+  await screen.getByRole("button", { name: "Example" }).click();
+  // Set a past exp to trigger isExpired=true and expiresAt being a date string
+  const pastExp = Math.floor(Date.now() / 1000) - 3600;
+  await screen.getByLabelText("Edit JWT payload JSON").fill(
+    `{"sub":"1234567890","iat":1516239022,"exp":${pastExp}}`,
+  );
+  await vi.waitFor(async () => {
+    await expect.element(screen.getByText(/Expired/)).toBeVisible();
+  }, { timeout: 2000 });
+});
+
+test("JWT with non-HS256 algorithm shows HS256 only badge", async () => {
+  const screen = await render(<JwtTool />);
+  // RS256 token — header is {"alg":"RS256","typ":"JWT"}, payload is the example payload
+  const rs256Token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.fakesignature";
+  await screen.getByLabelText("Encoded JWT token").fill(rs256Token);
+  await expect.element(screen.getByText("HS256 only")).toBeVisible();
+});
+
+test("decoder hook handles payload edits before a token exists", async () => {
+  const screen = await render(<JwtDecoderHarness />);
+  await screen.getByRole("button", { name: "Edit without token" }).click();
+  await expect.element(screen.getByText('{"sub":"1"}')).toBeVisible();
+  await screen.getByRole("button", { name: "Decode empty" }).click();
+  expect(document.querySelector("output")).not.toBeNull();
 });

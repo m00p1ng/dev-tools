@@ -7,12 +7,7 @@ import { useDropText } from "@/hooks/useDropText";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { parseUrl, type ParsedUrl } from "@/lib/tool-logic/web-time";
-
-const listVariants = { visible: { transition: { staggerChildren: 0.05 } } };
-const itemVariants = {
-  hidden: { opacity: 0, x: -6 },
-  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 350, damping: 28 } },
-};
+import { listVariants, itemVariants } from "@/lib/animation-presets";
 
 const paramColors = [
   "text-rose-500 dark:text-rose-400",

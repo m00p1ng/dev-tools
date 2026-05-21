@@ -8,6 +8,8 @@ import { v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5, v7 as uuidv7, v
 import { ulid } from "ulid";
 import { motion, AnimatePresence } from "framer-motion";
 import { clampNumber, generateObjectId } from "@/lib/tool-logic/generators";
+import { listVariants, itemVariants } from "@/lib/animation-presets";
+import { CopyableMonoItem } from "@/components/ui/copyable-mono-item";
 
 type Algorithm = "v1" | "v3" | "v4" | "v5" | "v7" | "ulid" | "objectid";
 
@@ -24,12 +26,6 @@ const ALGORITHM_LABELS: Record<Algorithm, string> = {
 const NAMESPACES: Record<string, string> = {
   DNS: uuidv5.DNS,
   URL: uuidv5.URL,
-};
-
-const listVariants = { visible: { transition: { staggerChildren: 0.04 } } };
-const itemVariants = {
-  hidden: { opacity: 0, x: -8 },
-  visible: { opacity: 1, x: 0, transition: { type: "spring" as const, stiffness: 400, damping: 30 } },
 };
 
 export function UuidTool() {
@@ -155,10 +151,7 @@ export function UuidTool() {
         >
           {results.map((id, i) => (
             <motion.div key={i} variants={itemVariants}>
-              <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted transition-colors">
-                <span className="font-mono text-sm flex-1 break-all select-all">{id}</span>
-                <CopyButton text={id} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              <CopyableMonoItem text={id} />
             </motion.div>
           ))}
         </motion.div>
