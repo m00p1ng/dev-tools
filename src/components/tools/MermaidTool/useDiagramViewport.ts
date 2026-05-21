@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const clampZoom = (z: number) => Math.min(4, Math.max(0.25, z));
+const clampZoom = (z: number) => Math.min(10, Math.max(0.25, z));
 
 function getTouchDist(
   t1: { clientX: number; clientY: number },
@@ -45,16 +45,20 @@ export function useDiagramViewport() {
   const fitToScreen = () => {
     const el = containerRef.current;
     if (!el) return;
-    const svgEl = el.querySelector("svg");
+    const svgEl = el.querySelector("svg[aria-roledescription]") as SVGSVGElement | null;
     if (!svgEl) { setViewport(RESET_VIEWPORT); return; }
     const containerW = el.clientWidth;
     const containerH = el.clientHeight;
     const vb = svgEl.viewBox?.baseVal;
-    const svgW = (vb?.width || 0) || parseFloat(svgEl.getAttribute("width") ?? "0") || svgEl.clientWidth;
-    const svgH = (vb?.height || 0) || parseFloat(svgEl.getAttribute("height") ?? "0") || svgEl.clientHeight;
-    if (!svgW || !svgH || !containerW || !containerH) { setViewport(RESET_VIEWPORT); return; }
+    // Mermaid SVGs use width="100%" so clientWidth gives the actual CSS-rendered width.
+    // height="100%" is unreliable — derive from viewBox aspect ratio instead.
+    const cssW = svgEl.clientWidth;
+    const cssH = (cssW && vb?.width && vb?.height)
+      ? cssW * (vb.height / vb.width)
+      : svgEl.clientHeight;
+    if (!cssW || !cssH || !containerW || !containerH) { setViewport(RESET_VIEWPORT); return; }
     setViewport({
-      zoom: clampZoom(Math.min(containerW / svgW, containerH / svgH) * 0.9),
+      zoom: clampZoom(Math.min(containerW / cssW, containerH / cssH) * 0.9),
       pan: { x: 0, y: 0 },
     });
   };

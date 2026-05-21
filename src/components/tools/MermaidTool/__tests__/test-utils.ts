@@ -1,6 +1,6 @@
 import { expect, vi } from "vitest";
 
-export const sampleSvg = '<svg viewBox="0 0 100 80"><rect width="100" height="80" /></svg>';
+export const sampleSvg = '<svg aria-roledescription="flowchart-v2" viewBox="0 0 100 80"><rect width="100" height="80" /></svg>';
 
 export function openDropdown(trigger: HTMLElement) {
   trigger.dispatchEvent(new PointerEvent("pointerdown", {

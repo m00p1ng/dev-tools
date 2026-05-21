@@ -109,7 +109,7 @@ test("fit to screen uses container and SVG dimensions", async () => {
   Object.defineProperty(container, "clientHeight", { configurable: true, value: 200 });
   (screen.getByRole("button", { name: "Fit to screen" }).element() as HTMLButtonElement).click();
 
-  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("400%");
+  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("180%");
 });
 
 test("mousedown and mousemove on SVG container trigger pan", async () => {

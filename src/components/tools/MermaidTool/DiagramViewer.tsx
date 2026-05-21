@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useDiagramViewport } from "./useDiagramViewport";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,7 @@ interface DiagramViewerProps {
   onFullscreen?: () => void;
 }
 
-const ZOOM_PRESETS = [50, 100, 125, 150, 200, 300, 400];
+const ZOOM_PRESETS = [50, 100, 125, 150, 200, 300, 500, 750, 1000];
 
 export function DiagramViewer({ svg, onFullscreen }: DiagramViewerProps) {
   const {
@@ -26,6 +27,12 @@ export function DiagramViewer({ svg, onFullscreen }: DiagramViewerProps) {
     setZoomPreset,
     handlers,
   } = useDiagramViewport();
+
+  useEffect(() => {
+    if (!svg) return;
+    const raf = requestAnimationFrame(fitToScreen);
+    return () => cancelAnimationFrame(raf);
+  }, [svg]);
 
   return (
     <div
