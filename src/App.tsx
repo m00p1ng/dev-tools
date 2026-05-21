@@ -27,6 +27,8 @@ export default function App() {
   const [fullWidth, setFullWidth] = useLocalStorage<boolean>("full-width", false);
   const { theme } = useTheme();
   useFontSize();
+  const canToggleFullWidth = !isMobile;
+  const isFullWidth = canToggleFullWidth && fullWidth;
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -134,9 +136,9 @@ export default function App() {
           </AnimatePresence>
 
           <div className="flex flex-1 justify-end items-center gap-1">
-            {!isMobile && (
-              <Button variant="ghost" size="icon-xs" onClick={() => setFullWidth(!fullWidth)} title={fullWidth ? "Constrain width" : "Full width"}>
-                {fullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+            {canToggleFullWidth && (
+              <Button variant="ghost" size="icon-xs" onClick={() => setFullWidth(!fullWidth)} title={isFullWidth ? "Constrain width" : "Full width"}>
+                {isFullWidth ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
               </Button>
             )}
             <ThemeToggle />
@@ -151,7 +153,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className={fullWidth ? "h-full w-full" : "h-full w-full max-w-4xl mx-auto"}
+              className={isFullWidth ? "h-full w-full" : "h-full w-full max-w-4xl mx-auto"}
             >
               <ToolContent toolId={activeTool} />
             </motion.div>
