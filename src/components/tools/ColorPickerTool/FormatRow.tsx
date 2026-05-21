@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/ui/copy-button";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,14 @@ interface FormatRowProps {
 
 export function FormatRow({ label, value, onCommit }: FormatRowProps) {
   const [raw, setRaw] = useState(value);
-  const [prev, setPrev] = useState(value);
   const [isError, setIsError] = useState(false);
   const focusedRef = useRef(false);
 
-  if (!focusedRef.current && value !== prev) { setPrev(value); setRaw(value); setIsError(false); }
+  useEffect(() => {
+    if (focusedRef.current) return;
+    setRaw(value);
+    setIsError(false);
+  }, [value]);
 
   const commit = () => setIsError(!onCommit(raw));
 

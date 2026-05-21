@@ -3,6 +3,20 @@ import { render } from "vitest-browser-react";
 import { DiagramViewer } from "../DiagramViewer";
 import { openDropdown, sampleSvg, waitForMenuItems } from "./test-utils";
 
+function getViewerContainer() {
+  return document.querySelector("[style*='cursor']") as HTMLElement;
+}
+
+function getDiagramLayer(container: HTMLElement) {
+  return container.lastElementChild as HTMLElement;
+}
+
+function touchEvent(type: string, touches: Array<{ clientX: number; clientY: number }>) {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "touches", { value: touches });
+  return event;
+}
+
 test("shows the empty state when no SVG is available", async () => {
   const screen = await render(<DiagramViewer svg="" />);
   await expect.element(screen.getByText("Diagram will appear here...")).toBeVisible();
@@ -13,7 +27,7 @@ test("shows zoom and fullscreen controls when SVG is rendered", async () => {
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("100%");
   await expect.element(screen.getByRole("button", { name: "Zoom in" })).toBeVisible();
   await expect.element(screen.getByRole("button", { name: "Zoom out" })).toBeVisible();
-  await expect.element(screen.getByRole("button", { name: "Reset view" })).toBeVisible();
+  await expect.element(screen.getByRole("button", { name: "Fit to screen" })).toBeVisible();
   await expect.element(screen.getByRole("button", { name: "Fullscreen preview" })).toBeVisible();
 });
 
@@ -23,7 +37,7 @@ test("clicking zoom buttons changes zoom level", async () => {
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("110%");
   (screen.getByRole("button", { name: "Zoom out" }).element() as HTMLButtonElement).click();
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("100%");
-  (screen.getByRole("button", { name: "Reset view" }).element() as HTMLButtonElement).click();
+  (screen.getByRole("button", { name: "Fit to screen" }).element() as HTMLButtonElement).click();
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("100%");
 });
 
@@ -45,16 +59,62 @@ test("fullscreen button calls the fullscreen handler", async () => {
   expect(onFullscreen).toHaveBeenCalledOnce();
 });
 
-test("wheel event on SVG container adjusts zoom", async () => {
+test("trackpad pinch wheel event on SVG container adjusts zoom", async () => {
   const screen = await render(<DiagramViewer svg={sampleSvg} />);
-  const container = screen.getByRole("button", { name: "Select zoom" }).element().closest("[style*='cursor']") as HTMLElement;
-  container.dispatchEvent(new WheelEvent("wheel", { deltaY: -100, bubbles: true, cancelable: true }));
+  const container = getViewerContainer();
+  container.dispatchEvent(new WheelEvent("wheel", { deltaY: -25, ctrlKey: true, bubbles: true, cancelable: true }));
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("110%");
+});
+
+test("wheel event without a zoom modifier pans the diagram", async () => {
+  const screen = await render(<DiagramViewer svg={sampleSvg} />);
+  const container = getViewerContainer();
+  const diagram = getDiagramLayer(container);
+
+  container.dispatchEvent(new WheelEvent("wheel", { deltaX: 12, deltaY: 34, bubbles: true, cancelable: true }));
+
+  await vi.waitFor(() => {
+    expect(diagram.style.transform).toContain("translate(-12px, -34px)");
+  });
+  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("100%");
+});
+
+test("shift wheel event pans horizontally", async () => {
+  await render(<DiagramViewer svg={sampleSvg} />);
+  const container = getViewerContainer();
+  const diagram = getDiagramLayer(container);
+
+  container.dispatchEvent(new WheelEvent("wheel", { deltaY: 40, shiftKey: true, bubbles: true, cancelable: true }));
+
+  await vi.waitFor(() => {
+    expect(diagram.style.transform).toContain("translate(-40px, 0px)");
+  });
+});
+
+test("touch pinch zooms the diagram", async () => {
+  const screen = await render(<DiagramViewer svg={sampleSvg} />);
+  const container = getViewerContainer();
+
+  container.dispatchEvent(touchEvent("touchstart", [{ clientX: 0, clientY: 0 }, { clientX: 100, clientY: 0 }]));
+  container.dispatchEvent(touchEvent("touchmove", [{ clientX: 0, clientY: 0 }, { clientX: 150, clientY: 0 }]));
+
+  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("150%");
+});
+
+test("fit to screen uses container and SVG dimensions", async () => {
+  const screen = await render(<DiagramViewer svg={sampleSvg} />);
+  const container = getViewerContainer();
+
+  Object.defineProperty(container, "clientWidth", { configurable: true, value: 200 });
+  Object.defineProperty(container, "clientHeight", { configurable: true, value: 200 });
+  (screen.getByRole("button", { name: "Fit to screen" }).element() as HTMLButtonElement).click();
+
+  await expect.element(screen.getByRole("button", { name: "Select zoom" })).toHaveTextContent("400%");
 });
 
 test("mousedown and mousemove on SVG container trigger pan", async () => {
   const screen = await render(<DiagramViewer svg={sampleSvg} />);
-  const container = screen.getByRole("button", { name: "Select zoom" }).element().closest("[style*='cursor']") as HTMLElement;
+  const container = getViewerContainer();
   container.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 100, clientY: 100, bubbles: true }));
   container.dispatchEvent(new MouseEvent("mousemove", { clientX: 150, clientY: 120, bubbles: true }));
   container.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
@@ -63,7 +123,7 @@ test("mousedown and mousemove on SVG container trigger pan", async () => {
 
 test("mouseleave resets dragging state", async () => {
   const screen = await render(<DiagramViewer svg={sampleSvg} />);
-  const container = screen.getByRole("button", { name: "Select zoom" }).element().closest("[style*='cursor']") as HTMLElement;
+  const container = getViewerContainer();
   container.dispatchEvent(new MouseEvent("mousedown", { button: 0, clientX: 50, clientY: 50, bubbles: true }));
   container.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toBeVisible();
@@ -71,7 +131,7 @@ test("mouseleave resets dragging state", async () => {
 
 test("non-left mouse button is ignored during mousedown", async () => {
   const screen = await render(<DiagramViewer svg={sampleSvg} />);
-  const container = screen.getByRole("button", { name: "Select zoom" }).element().closest("[style*='cursor']") as HTMLElement;
+  const container = getViewerContainer();
   // button: 1 = middle click, button !== 0 returns early without setting dragging
   container.dispatchEvent(new MouseEvent("mousedown", { button: 1, clientX: 100, clientY: 100, bubbles: true }));
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toBeVisible();
@@ -79,7 +139,7 @@ test("non-left mouse button is ignored during mousedown", async () => {
 
 test("mouse move without prior mouse down is a no-op", async () => {
   const screen = await render(<DiagramViewer svg={sampleSvg} />);
-  const container = screen.getByRole("button", { name: "Select zoom" }).element().closest("[style*='cursor']") as HTMLElement;
+  const container = getViewerContainer();
   // No mousedown before mousemove — dragging.current is null → returns early
   container.dispatchEvent(new MouseEvent("mousemove", { clientX: 150, clientY: 120, bubbles: true }));
   await expect.element(screen.getByRole("button", { name: "Select zoom" })).toBeVisible();

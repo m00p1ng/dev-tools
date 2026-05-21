@@ -120,10 +120,10 @@ test("full width toggle changes the content wrapper", async () => {
   const screen = await render(<App />);
   const wrapper = document.querySelector("main > div") as HTMLElement;
 
-  expect(wrapper.className).toContain("max-w-4xl");
+  expect(wrapper.className).toContain("max-w-5xl");
   await screen.getByTitle("Full width").click();
   await vi.waitFor(() => {
-    expect(wrapper.className).not.toContain("max-w-4xl");
+    expect(wrapper.className).not.toContain("max-w-5xl");
   });
   await expect.element(screen.getByTitle("Constrain width")).toBeVisible();
 });

@@ -6,6 +6,10 @@ import { useColorWheel } from "../ColorPickerTool/useColorWheel";
 import { useDragSlider } from "../ColorPickerTool/useDragSlider";
 import type { Hsv } from "@/lib/tool-logic/color";
 
+type EyeDropperWindow = Window & typeof globalThis & {
+  EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> };
+};
+
 function pressEnter() {
   const el = document.activeElement as HTMLElement | null;
   el?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -245,7 +249,7 @@ test("saved color click ignores invalid stored colors", async () => {
 
 test("uses the EyeDropper API when available", async () => {
   // Mock EyeDropper
-  (window as any).EyeDropper = class {
+  (window as EyeDropperWindow).EyeDropper = class {
     open() { return Promise.resolve({ sRGBHex: "#ff0000" }); }
   };
   const screen = await render(<ColorPickerTool />);
@@ -257,22 +261,22 @@ test("uses the EyeDropper API when available", async () => {
     const val = (hexInput.element() as HTMLInputElement).value;
     expect(val).toBe("#FF0000");
   }, { timeout: 2000 });
-  delete (window as any).EyeDropper;
+  delete (window as EyeDropperWindow).EyeDropper;
 });
 
 test("EyeDropper cancel (rejection) does not crash", async () => {
-  (window as any).EyeDropper = class {
+  (window as EyeDropperWindow).EyeDropper = class {
     open() { return Promise.reject(new Error("AbortError")); }
   };
   const screen = await render(<ColorPickerTool />);
   await screen.getByTitle("Pick color from screen").click();
   // Should still be visible after cancel
   await expect.element(screen.getByTitle("Pick color from screen")).toBeVisible();
-  delete (window as any).EyeDropper;
+  delete (window as EyeDropperWindow).EyeDropper;
 });
 
 test("EyeDropper with invalid hex does not update color", async () => {
-  (window as any).EyeDropper = class {
+  (window as EyeDropperWindow).EyeDropper = class {
     open() { return Promise.resolve({ sRGBHex: "notahex" }); }
   };
   const screen = await render(<ColorPickerTool />);
@@ -281,7 +285,7 @@ test("EyeDropper with invalid hex does not update color", async () => {
   await screen.getByTitle("Pick color from screen").click();
   await vi.waitFor(() => {}, { timeout: 300 });
   expect((hexInput.element() as HTMLInputElement).value).toBe(hexBefore);
-  delete (window as any).EyeDropper;
+  delete (window as EyeDropperWindow).EyeDropper;
 });
 
 test("editing HSV field with valid value updates color", async () => {

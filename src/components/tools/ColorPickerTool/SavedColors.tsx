@@ -11,6 +11,10 @@ interface SavedColorsProps {
   setHsv: (hsv: Hsv) => void;
 }
 
+type EyeDropperConstructor = new () => {
+  open: () => Promise<{ sRGBHex: string }>;
+};
+
 export function SavedColors({ hsv, savedColors, setSavedColors, setHsv }: SavedColorsProps) {
   const [hasEyeDropper] = useState(() => "EyeDropper" in window);
   const [animatingSlot, setAnimatingSlot] = useState<number | null>(null);
@@ -38,10 +42,14 @@ export function SavedColors({ hsv, savedColors, setSavedColors, setHsv }: SavedC
 
   const handleEyeDropper = async () => {
     try {
-      const { sRGBHex } = await new (window as any).EyeDropper().open();
+      const EyeDropper = (window as Window & { EyeDropper?: EyeDropperConstructor }).EyeDropper;
+      if (!EyeDropper) return;
+      const { sRGBHex } = await new EyeDropper().open();
       const rgb = parseHex(sRGBHex);
       if (rgb) setHsv(rgbToHsv(rgb));
-    } catch {}
+    } catch {
+      return;
+    }
   };
 
   return (
