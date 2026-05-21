@@ -103,9 +103,7 @@ export function MermaidTool() {
           </ToolOutputPane>
         </ToolPanels>
       </ToolLayout>
-      {fullscreen && svg && (
-        <FullscreenModal svg={svg} isDark={isDark} onDownload={handleDownload} onClose={() => setFullscreen(false)} />
-      )}
+      <FullscreenModal open={fullscreen && !!svg} svg={svg ?? ""} isDark={isDark} onDownload={handleDownload} onClose={() => setFullscreen(false)} />
     </>
   );
 }

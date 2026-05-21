@@ -7,6 +7,7 @@ import type { ImageFormat } from "@/lib/tool-logic/diagram";
 function renderModal(props?: Partial<Parameters<typeof FullscreenModal>[0]>) {
   return render(
     <FullscreenModal
+      open={true}
       svg={sampleSvg}
       isDark={false}
       onDownload={vi.fn()}
