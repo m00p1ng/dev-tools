@@ -35,12 +35,12 @@ test("falls back when the tool query parameter is invalid", async () => {
 
 test("shows onboarding when not seen before", async () => {
   const screen = await render(<App />);
-  await expect.element(screen.getByText("Dev Tools")).toBeVisible();
+  await expect.element(screen.getByRole("heading", { name: "Dev Tools" })).toBeVisible();
 });
 
 test("onboarding Get started button works", async () => {
   const screen = await render(<App />);
-  await expect.element(screen.getByText("Dev Tools")).toBeVisible();
+  await expect.element(screen.getByRole("heading", { name: "Dev Tools" })).toBeVisible();
   await screen.getByRole("button", { name: "Get started" }).click();
   // After animation, onboarding dismisses and header shows
   await vi.waitFor(async () => {
