@@ -18,6 +18,16 @@ describe("data helpers", () => {
       value: '{\n  "name": "Alice"\n}',
       meta: { repaired: true },
     });
+    expect(formatJson('{"a": 1}{"b": 2}', "format")).toEqual({
+      ok: true,
+      value: '[\n  {\n    "a": 1\n  },\n  {\n    "b": 2\n  }\n]',
+      meta: { repaired: true },
+    });
+    expect(formatJson('{a: 1}{"b": 2}', "format")).toEqual({
+      ok: true,
+      value: '[\n  {\n    "a": 1\n  },\n  {\n    "b": 2\n  }\n]',
+      meta: { repaired: true },
+    });
   });
 
   it("reports invalid JSON when repair fails", () => {

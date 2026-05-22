@@ -14,16 +14,103 @@ function stringifyJson(value: unknown, mode: JsonFormatMode): string {
   return mode === "minify" ? JSON.stringify(value) : JSON.stringify(value, null, 2);
 }
 
+function parseJsonOrRepair(input: string): unknown {
+  try {
+    return JSON.parse(input);
+  } catch {
+    return JSON.parse(jsonrepair(input));
+  }
+}
+
+function parseConcatenatedJsonValues(input: string): unknown[] | null {
+  const values: unknown[] = [];
+  let segmentStart: number | null = null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < input.length; index += 1) {
+    const char = input[index];
+
+    if (segmentStart === null) {
+      if (char === " " || char === "\t" || char === "\n" || char === "\r") {
+        continue;
+      }
+
+      if (char !== "{" && char !== "[") {
+        return null;
+      }
+
+      segmentStart = index;
+      depth = 1;
+      continue;
+    }
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = true;
+    } else if (char === "{" || char === "[") {
+      depth += 1;
+    } else if (char === "}" || char === "]") {
+      depth -= 1;
+      if (depth === 0) {
+        values.push(parseJsonOrRepair(input.slice(segmentStart, index + 1)));
+        segmentStart = null;
+      } else if (depth < 0) {
+        return null;
+      }
+    }
+  }
+
+  if (segmentStart !== null || inString || values.length < 2) return null;
+  return values;
+}
+
+function tryParseJson(input: string): { value: unknown; repaired: boolean } {
+  try {
+    return {
+      value: JSON.parse(input),
+      repaired: false,
+    };
+  } catch {
+    const concatenated = parseConcatenatedJsonValues(input);
+    if (concatenated) {
+      return {
+        value: concatenated,
+        repaired: true,
+      };
+    }
+    return {
+      value: parseJsonOrRepair(input),
+      repaired: true,
+    };
+  }
+}
+
 export function formatJson(input: string, mode: JsonFormatMode): ToolResult<string, JsonFormatMeta> {
   if (!input) return { ok: true, value: "", meta: { repaired: false } };
   try {
-    return { ok: true, value: stringifyJson(JSON.parse(input), mode), meta: { repaired: false } };
-  } catch (initialError) {
-    try {
-      return { ok: true, value: stringifyJson(JSON.parse(jsonrepair(input)), mode), meta: { repaired: true } };
-    } catch {
-      return { ok: false, error: errorMessage(initialError, "Invalid JSON") };
-    }
+    const { value, repaired } = tryParseJson(input);
+    return {
+      ok: true,
+      value: stringifyJson(value, mode),
+      meta: { repaired },
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: errorMessage(error, "Invalid JSON"),
+    };
   }
 }
 
