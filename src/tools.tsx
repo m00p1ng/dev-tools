@@ -4,7 +4,6 @@ import {
   Braces,
   Clock,
   Code,
-  FileCode,
   FileJson,
   Fingerprint,
   GitFork,
@@ -16,7 +15,6 @@ import {
   QrCode,
   Shuffle,
   Table,
-  TableProperties,
   Timer,
   type LucideProps,
 } from "lucide-react";
@@ -36,10 +34,8 @@ export const TOOLS: Tool[] = [
   { id: "cron", label: "Cron Parser", description: "Parse and explain cron expressions", icon: Timer, color: "text-fuchsia-500", group: "Time" },
 
   { id: "json-format", label: "JSON Format / Validate", description: "Format and validate JSON data", icon: Braces, color: "text-yellow-500", group: "Data" },
-  { id: "yaml-to-json", label: "YAML to JSON", description: "Convert YAML to JSON", icon: FileJson, color: "text-amber-500", group: "Data" },
-  { id: "json-to-yaml", label: "JSON to YAML", description: "Convert JSON to YAML", icon: FileCode, color: "text-lime-500", group: "Data" },
-  { id: "json-to-csv", label: "JSON to CSV", description: "Convert JSON arrays to CSV", icon: Table, color: "text-green-500", group: "Data" },
-  { id: "csv-to-json", label: "CSV to JSON", description: "Convert CSV to JSON arrays", icon: TableProperties, color: "text-emerald-500", group: "Data" },
+  { id: "yaml-json", label: "YAML ↔ JSON", description: "Convert between YAML and JSON", icon: FileJson, color: "text-amber-500", group: "Data" },
+  { id: "csv-json", label: "CSV ↔ JSON", description: "Convert between CSV and JSON", icon: Table, color: "text-green-500", group: "Data" },
 
   { id: "base64", label: "Base64 Encode/Decode", description: "Encode and decode Base64 strings", icon: Binary, color: "text-purple-500", group: "Encoding" },
   { id: "url-encode", label: "URL Encode/Decode", description: "Encode and decode URL components", icon: Link, color: "text-cyan-500", group: "Encoding" },

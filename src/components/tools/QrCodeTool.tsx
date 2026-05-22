@@ -100,7 +100,7 @@ export function QrCodeTool() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">{tabButtons}</div>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" className="text-xs text-muted-foreground"
+                <Button size="sm" variant="ghost" className="text-sm text-muted-foreground"
                   onClick={() => setInput("https://example.com")}>
                   Example
                 </Button>
@@ -113,11 +113,11 @@ export function QrCodeTool() {
               placeholder="Text or URL to encode… or drop a file"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className={cn("flex-1 resize-none font-mono text-xs transition-all duration-150",
+              className={cn("font-mono text-sm transition-all duration-150 min-h-[7.5rem]",
                 isGenDragging && "ring-2 ring-primary/50 bg-primary/5")}
               {...genDropProps}
             />
-            {genError && <Badge variant="destructive" className="self-start text-xs">{genError}</Badge>}
+            {genError && <Badge variant="destructive" className="self-start text-sm">{genError}</Badge>}
           </div>
 
           <div className="flex flex-col items-center gap-2">
@@ -133,7 +133,7 @@ export function QrCodeTool() {
               <select
                 value={ecLevel}
                 onChange={(e) => setEcLevel(e.target.value as QrEcLevel)}
-                className="h-7 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                className="h-7 rounded-md border border-input bg-background px-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               >
                 {QR_EC_LEVELS.map((ec) => (
                   <option key={ec.value} value={ec.value}>{ec.label}</option>
@@ -155,7 +155,7 @@ export function QrCodeTool() {
             className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border p-8 cursor-pointer hover:bg-muted/50 transition-colors"
           >
             <Upload className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Drop QR image here or click to upload</p>
+            <p className="text-base text-muted-foreground">Drop QR image here or click to upload</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -165,12 +165,12 @@ export function QrCodeTool() {
             />
           </div>
 
-          {readError && <Badge variant="destructive" className="self-start text-xs">{readError}</Badge>}
+          {readError && <Badge variant="destructive" className="self-start text-sm">{readError}</Badge>}
 
           {readResult && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Decoded content</p>
+                <p className="text-base font-medium">Decoded content</p>
                 <CopyButton text={readResult} withLabel />
               </div>
               <div className="h-24">
