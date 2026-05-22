@@ -21,6 +21,8 @@ export function DiagramViewer({ svg, onFullscreen }: DiagramViewerProps) {
     containerRef,
     zoom,
     pan,
+    animated,
+    snapToFit,
     fitToScreen,
     zoomIn,
     zoomOut,
@@ -30,9 +32,9 @@ export function DiagramViewer({ svg, onFullscreen }: DiagramViewerProps) {
 
   useEffect(() => {
     if (!svg) return;
-    const raf = requestAnimationFrame(fitToScreen);
+    const raf = requestAnimationFrame(snapToFit);
     return () => cancelAnimationFrame(raf);
-  }, [svg]);
+  }, [svg, snapToFit]);
 
   return (
     <div
@@ -113,6 +115,7 @@ export function DiagramViewer({ svg, onFullscreen }: DiagramViewerProps) {
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: "center",
             pointerEvents: "none",
+            transition: animated ? "transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)" : "none",
           }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />

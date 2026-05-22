@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 const clampZoom = (z: number) => Math.min(10, Math.max(0.25, z));
 
@@ -19,6 +19,7 @@ const RESET_VIEWPORT: Viewport = { zoom: 1, pan: { x: 0, y: 0 } };
 export function useDiagramViewport() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState<Viewport>(RESET_VIEWPORT);
+  const [animated, setAnimated] = useState(false);
 
   // Mirror into ref so native event handlers always read current values
   const viewportRef = useRef(viewport);
@@ -42,7 +43,7 @@ export function useDiagramViewport() {
     midY: number;
   } | null>(null);
 
-  const fitToScreen = () => {
+  const fitToScreen = useCallback(() => {
     const el = containerRef.current;
     if (!el) return;
     const svgEl = el.querySelector("svg[aria-roledescription]") as SVGSVGElement | null;
@@ -51,17 +52,18 @@ export function useDiagramViewport() {
     const containerH = el.clientHeight;
     const vb = svgEl.viewBox?.baseVal;
     // Mermaid SVGs use width="100%" so clientWidth gives the actual CSS-rendered width.
+    // Fall back to viewBox width when clientWidth is 0 (e.g. JSDOM test env).
     // height="100%" is unreliable — derive from viewBox aspect ratio instead.
-    const cssW = svgEl.clientWidth;
+    const cssW = svgEl.clientWidth || (vb?.width ?? 0);
     const cssH = (cssW && vb?.width && vb?.height)
       ? cssW * (vb.height / vb.width)
       : svgEl.clientHeight;
-    if (!cssW || !cssH || !containerW || !containerH) { setViewport(RESET_VIEWPORT); return; }
+    if (!cssW || !cssH || !containerW || !containerH) { return; }
     setViewport({
       zoom: clampZoom(Math.min(containerW / cssW, containerH / cssH) * 0.9),
       pan: { x: 0, y: 0 },
     });
-  };
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -69,6 +71,7 @@ export function useDiagramViewport() {
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      setAnimated(false);
       const rect = el.getBoundingClientRect();
       const cx = e.clientX - rect.left - rect.width / 2;
       const cy = e.clientY - rect.top - rect.height / 2;
@@ -88,6 +91,7 @@ export function useDiagramViewport() {
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 2 || !pinchRef.current) return;
       e.preventDefault();
+      setAnimated(false);
       const t1 = e.touches[0], t2 = e.touches[1];
       const { dist, startZoom, startPan, midX, midY } = pinchRef.current;
       const newZoom = clampZoom(startZoom * (getTouchDist(t1, t2) / dist));
@@ -110,6 +114,7 @@ export function useDiagramViewport() {
   const handlers = {
     onMouseDown(e: React.MouseEvent) {
       if (e.button !== 0) return;
+      setAnimated(false);
       containerRef.current!.style.cursor = "grabbing";
       const { pan } = viewportRef.current;
       dragRef.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y };
@@ -145,14 +150,36 @@ export function useDiagramViewport() {
     onTouchEnd() { pinchRef.current = null; },
   };
 
+  const fitToScreenAnimated = useCallback(() => {
+    setAnimated(true);
+    fitToScreen();
+  }, [fitToScreen]);
+
+  const zoomIn = useCallback(() => {
+    setAnimated(true);
+    setViewport(v => ({ ...v, zoom: clampZoom(v.zoom + 0.1) }));
+  }, []);
+
+  const zoomOut = useCallback(() => {
+    setAnimated(true);
+    setViewport(v => ({ ...v, zoom: clampZoom(v.zoom - 0.1) }));
+  }, []);
+
+  const setZoomPreset = useCallback((z: number) => {
+    setAnimated(true);
+    setViewport({ zoom: z, pan: { x: 0, y: 0 } });
+  }, []);
+
   return {
     containerRef,
     zoom: viewport.zoom,
     pan: viewport.pan,
-    fitToScreen,
-    zoomIn: () => setViewport(v => ({ ...v, zoom: clampZoom(v.zoom + 0.1) })),
-    zoomOut: () => setViewport(v => ({ ...v, zoom: clampZoom(v.zoom - 0.1) })),
-    setZoomPreset: (z: number) => setViewport({ zoom: z, pan: { x: 0, y: 0 } }),
+    animated,
+    snapToFit: fitToScreen,
+    fitToScreen: fitToScreenAnimated,
+    zoomIn,
+    zoomOut,
+    setZoomPreset,
     handlers,
   };
 }
