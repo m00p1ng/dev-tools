@@ -24,18 +24,24 @@ interface ModeOption<TMode extends string> {
   label: string;
 }
 
+type PerMode<TMode extends string, T> = T | ((mode: TMode) => T);
+
+function resolvePerMode<TMode extends string, T>(value: PerMode<TMode, T>, mode: TMode): T {
+  return typeof value === "function" ? (value as (mode: TMode) => T)(mode) : value;
+}
+
 interface TextTransformToolProps<TMode extends string, M> {
   storageKey: string;
   initialMode: TMode;
   modes?: ModeOption<TMode>[];
-  inputPlaceholder: string;
+  inputPlaceholder: PerMode<TMode, string>;
   outputPlaceholder: string;
-  example: string;
+  example: PerMode<TMode, string>;
   transform: (input: string, mode: TMode) => TextTransformResult<M>;
-  outputLanguage?: string;
+  outputLanguage?: PerMode<TMode, string>;
   gap?: 1 | 2;
   adoptOutputOnModeChange?: boolean;
-  toolbarLeft?: React.ReactNode;
+  toolbarLeft?: PerMode<TMode, React.ReactNode>;
   renderMeta?: (meta: M) => React.ReactNode;
 }
 
@@ -65,6 +71,11 @@ export function TextTransformTool<TMode extends string = "default", M = undefine
 
   const { output, error, meta } = useMemo(() => normalizeResult(transform(input, mode)), [input, mode, transform]);
 
+  const resolvedExample = resolvePerMode(example, mode);
+  const resolvedInputPlaceholder = resolvePerMode(inputPlaceholder, mode);
+  const resolvedOutputLanguage = resolvePerMode(outputLanguage ?? "text", mode);
+  const resolvedToolbarLeft = resolvePerMode(toolbarLeft, mode);
+
   const modeButtons = modes?.map((option) => (
     <Button
       key={option.value}
@@ -88,16 +99,25 @@ export function TextTransformTool<TMode extends string = "default", M = undefine
             left={
               <>
                 {modeButtons}
-                {toolbarLeft}
+                {resolvedToolbarLeft}
               </>
             }
-            onExample={() => setInput(example)}
+            onExample={() => setInput(resolvedExample)}
             onClear={() => setInput("")}
           />
           <Textarea
-            placeholder={inputPlaceholder}
+            placeholder={resolvedInputPlaceholder}
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Tab") return;
+              e.preventDefault();
+              const el = e.currentTarget;
+              const { selectionStart: start, selectionEnd: end } = el;
+              const next = input.slice(0, start) + "  " + input.slice(end);
+              setInput(next);
+              requestAnimationFrame(() => el.setSelectionRange(start + 2, start + 2));
+            }}
             className={cn(
               "flex-1 resize-none font-mono transition-all duration-150",
               isDragging && "ring-2 ring-primary/50 bg-primary/5",
@@ -122,7 +142,7 @@ export function TextTransformTool<TMode extends string = "default", M = undefine
                 </div>
               }
             >
-              <CodeBlock code={output} language={outputLanguage ?? "text"} placeholder={outputPlaceholder} />
+              <CodeBlock code={output} language={resolvedOutputLanguage} placeholder={outputPlaceholder} />
             </Suspense>
           </div>
         </ToolOutputPane>
