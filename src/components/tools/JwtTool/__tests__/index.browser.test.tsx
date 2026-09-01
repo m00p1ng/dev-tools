@@ -3,6 +3,9 @@ import { render } from "vitest-browser-react";
 import { JwtTool } from "..";
 import { useJwtDecoder } from "../useJwtDecoder";
 
+const LONG_NAME_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
+
 function JwtDecoderHarness() {
   const jwt = useJwtDecoder();
   return (
@@ -51,6 +54,19 @@ test("shows Invalid JWT error for malformed token", async () => {
   const screen = await render(<JwtTool />);
   await screen.getByLabelText("Encoded JWT token").fill("not.a.jwt");
   await expect.element(screen.getByText("Invalid JWT")).toBeVisible();
+});
+
+test("wraps decoded payload for long string values", async () => {
+  const screen = await render(<JwtTool />);
+  await screen.getByLabelText("Encoded JWT token").fill(LONG_NAME_TOKEN);
+
+  await expect.element(screen.getByText("Valid JWT")).toBeVisible();
+
+  const payloadEditor = screen.getByLabelText("Edit JWT payload JSON").element() as HTMLTextAreaElement;
+  const decodedPanel = payloadEditor.closest(".border");
+
+  expect(decodedPanel).not.toBeNull();
+  expect(decodedPanel!.scrollWidth).toBeLessThanOrEqual(decodedPanel!.clientWidth + 1);
 });
 
 test("clear button resets the token input and decoded view", async () => {

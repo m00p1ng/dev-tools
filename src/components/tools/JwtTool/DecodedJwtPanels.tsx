@@ -12,7 +12,9 @@ const CLAIM_LABELS: Record<string, string> = {
   jti: "JWT ID",
 };
 
-const OVERLAY_SHARED = "font-mono text-sm p-3 whitespace-pre-wrap break-words leading-[1.5] tracking-normal";
+const WRAPPED_MONO_BLOCK =
+  "font-mono text-sm p-3 whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-[1.5] tracking-normal";
+const OVERLAY_SHARED = WRAPPED_MONO_BLOCK;
 
 type TabType = "json" | "claims";
 
@@ -29,7 +31,7 @@ function JsonPanel({ data }: { data: object }) {
   const json = JSON.stringify(data, null, 2);
   return (
     <pre
-      className="font-mono text-sm p-3 overflow-auto leading-relaxed"
+      className={`${WRAPPED_MONO_BLOCK} overflow-auto`}
       dangerouslySetInnerHTML={{ __html: syntaxHighlight(json) }}
     />
   );
@@ -37,11 +39,11 @@ function JsonPanel({ data }: { data: object }) {
 
 function ClaimsPanel({ data }: { data: Record<string, unknown> }) {
   return (
-    <div className="p-3 space-y-1 font-mono text-sm overflow-auto">
+    <div className="p-3 space-y-1 font-mono text-sm overflow-auto min-w-0">
       {Object.entries(data).map(([key, val]) => (
-        <div key={key} className="flex gap-2">
+        <div key={key} className="flex gap-2 min-w-0">
           <span className="text-blue-300 min-w-[100px] shrink-0">{CLAIM_LABELS[key] ?? key}</span>
-          <span className="text-green-400 break-all">{getClaimDisplay(key, val)}</span>
+          <span className="text-green-400 break-all min-w-0">{getClaimDisplay(key, val)}</span>
         </div>
       ))}
     </div>
@@ -58,18 +60,18 @@ function EditableJsonOverlay({
   error?: string;
 }) {
   return (
-    <div>
-      <div className="grid min-h-[80px]">
+    <div className="min-w-0">
+      <div className="grid min-h-[80px] min-w-0 overflow-hidden">
         <pre
           aria-hidden
-          className={`[grid-area:1/1] ${OVERLAY_SHARED} pointer-events-none select-none`}
+          className={`[grid-area:1/1] w-full min-w-0 ${OVERLAY_SHARED} pointer-events-none select-none overflow-hidden`}
           dangerouslySetInnerHTML={{ __html: `${syntaxHighlight(value)}\n` }}
         />
         <textarea
           aria-label="Edit JWT payload JSON"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`[grid-area:1/1] ${OVERLAY_SHARED} bg-transparent text-transparent caret-foreground resize-none outline-none`}
+          className={`[grid-area:1/1] w-full min-w-0 ${OVERLAY_SHARED} bg-transparent text-transparent caret-foreground resize-none outline-none overflow-hidden`}
           spellCheck={false}
         />
       </div>
@@ -83,7 +85,7 @@ export function DecodedPanel({ title, data, editable, editValue, onEditChange, e
   const json = JSON.stringify(data, null, 2);
 
   return (
-    <div className="border border-border rounded-md overflow-hidden">
+    <div className="border border-border rounded-md overflow-hidden min-w-0">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-muted/40">
         <span className="text-sm font-semibold text-muted-foreground">{title}</span>
         <div className="flex items-center gap-1">
@@ -104,7 +106,7 @@ export function DecodedPanel({ title, data, editable, editValue, onEditChange, e
           <CopyButton text={json} />
         </div>
       </div>
-      <div className="bg-background overflow-auto">
+      <div className="bg-background overflow-auto min-w-0">
         {tab === "json" && editable ? (
           <EditableJsonOverlay value={editValue ?? json} onChange={onEditChange ?? (() => {})} error={editError} />
         ) : tab === "json" ? (

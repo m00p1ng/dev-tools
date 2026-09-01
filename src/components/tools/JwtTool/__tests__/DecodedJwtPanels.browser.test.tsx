@@ -10,6 +10,19 @@ test("renders highlighted JSON for read-only data", async () => {
   await expect.element(screen.getByText('"JWT"', { exact: true })).toBeVisible();
 });
 
+test("wraps long read-only JSON content", async () => {
+  const longValue = "a".repeat(240);
+  const screen = await render(<DecodedPanel title="Payload" data={{ longValue }} />);
+
+  const valueElement = screen.getByText(`"${longValue}"`, { exact: true }).element();
+  const jsonBlock = valueElement.closest("pre");
+
+  expect(jsonBlock).not.toBeNull();
+  expect(jsonBlock).toHaveClass("whitespace-pre-wrap");
+  expect(jsonBlock).toHaveClass("break-words");
+  expect(jsonBlock).toHaveClass("[overflow-wrap:anywhere]");
+});
+
 test("switches to claim labels and formatted claim values", async () => {
   const screen = await render(
     <DecodedPanel title="Payload" data={{ iss: "auth-service", sub: "user-123", iat: 0, custom: true }} />,
