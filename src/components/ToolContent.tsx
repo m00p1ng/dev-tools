@@ -29,6 +29,7 @@ const TOOL_COMPONENTS: Partial<Record<ToolId, ComponentType>> = {
   "random-string": lazyTool(() => import("./tools/RandomStringTool"), "RandomStringTool"),
   "qrcode": lazyTool(() => import("./tools/QrCodeTool"), "QrCodeTool"),
   "color-picker": lazyTool(() => import("./tools/ColorPickerTool"), "ColorPickerTool"),
+  "picsum": lazyTool(() => import("./tools/PicsumTool"), "PicsumTool"),
 };
 
 interface ToolContentProps {
