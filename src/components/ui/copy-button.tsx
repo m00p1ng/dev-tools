@@ -15,11 +15,11 @@ interface CopyButtonProps {
 export function CopyButton({ text, className, withLabel, size }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = useCallback(() => {
     if (!text) return;
-    await copyToClipboard(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    void copyToClipboard(text).catch(() => setCopied(false));
   }, [text]);
 
   return (
@@ -29,7 +29,7 @@ export function CopyButton({ text, className, withLabel, size }: CopyButtonProps
       className={cn(className)}
       onClick={handleCopy}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="sync" initial={false}>
         {copied ? (
           <motion.span
             key="check"

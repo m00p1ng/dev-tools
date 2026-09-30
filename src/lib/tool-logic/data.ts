@@ -1,5 +1,5 @@
 import Papa from "papaparse";
-import yaml from "js-yaml";
+import { dump, load } from "js-yaml";
 import { jsonrepair } from "jsonrepair";
 import type { ToolResult } from "@/lib/tool-logic/result";
 import { errorMessage } from "@/lib/tool-logic/result";
@@ -115,9 +115,9 @@ export function formatJson(input: string, mode: JsonFormatMode): ToolResult<stri
 }
 
 export function yamlToJson(input: string): ToolResult<string> {
-  if (!input) return { ok: true, value: "" };
+  if (!input.trim()) return { ok: true, value: "" };
   try {
-    return { ok: true, value: JSON.stringify(yaml.load(input), null, 2) ?? "" };
+    return { ok: true, value: JSON.stringify(load(input), null, 2) ?? "" };
   } catch (error) {
     return { ok: false, error: errorMessage(error, "Invalid YAML") };
   }
@@ -126,7 +126,7 @@ export function yamlToJson(input: string): ToolResult<string> {
 export function jsonToYaml(input: string): ToolResult<string> {
   if (!input) return { ok: true, value: "" };
   try {
-    return { ok: true, value: yaml.dump(JSON.parse(input), { indent: 2 }) };
+    return { ok: true, value: dump(JSON.parse(input), { indent: 2 }) };
   } catch (error) {
     return { ok: false, error: errorMessage(error, "Invalid JSON") };
   }

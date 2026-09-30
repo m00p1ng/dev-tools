@@ -26,6 +26,10 @@ Prism.languages.mermaid = {
   number: /\b\d+\b/,
 };
 
+// Vite 8's CJS interop can expose the editor's default export as a nested
+// default; unwrap it while retaining compatibility with direct exports.
+const CodeEditor = (Editor as unknown as { default?: typeof Editor }).default ?? Editor;
+
 const EXAMPLE = `graph TD
   A[Start] --> B{Is it working?}
   B -->|Yes| C[Great!]
@@ -62,7 +66,7 @@ export function MermaidTool() {
             />
             <div className="relative flex-1 overflow-auto rounded-md border border-input bg-background text-xs">
               {input && <CopyButton text={input} className="absolute right-2 top-2 z-10" />}
-              <Editor
+              <CodeEditor
                 value={input}
                 onValueChange={setInput}
                 highlight={(code) => Prism.highlight(code, Prism.languages.mermaid, "mermaid")}
